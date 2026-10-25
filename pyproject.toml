@@ -1,0 +1,9 @@
+[project]
+name = "secmar"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "dash>=4.4.1",
+    "pandas>=3.1.0",
+    "plotly>=7.1.0",
+]

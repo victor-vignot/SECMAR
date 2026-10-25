@@ -1,0 +1,19 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Fichiers système macOS
+.DS_Store
+
+# Secrets et variables locales
+.env
+
+# Base SQLite générée localement
+data/db.sqlite
+data/db.sqlite-journal
+data/db.sqlite-wal
+data/db.sqlite-shm
+
+# Donnees brutes volumineuses
+/data/raw/*.csv
