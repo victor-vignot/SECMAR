@@ -1,0 +1,157 @@
+RAPPORT D'INSPECTION DES DONNÉES SECMAR
+Inspection en lecture seule : aucun CSV ni SQLite modifié.
+
+============================================================
+FICHIER : operations
+============================================================
+Taille : 122.0 Mo
+Nombre de lignes : 394 756
+Nombre de colonnes : 26
+
+Valeurs manquantes par colonne :
+- seconde_autorite: 379 720 (96.19 %)
+- pourquoi_alerte: 218 315 (55.30 %)
+- type_operation: 176 441 (44.70 %)
+- vent_direction_categorie: 116 232 (29.44 %)
+- mer_force: 113 219 (28.68 %)
+- vent_direction: 105 053 (26.61 %)
+- vent_force: 104 994 (26.60 %)
+- autorite: 89 077 (22.57 %)
+- departement: 77 798 (19.71 %)
+- latitude: 54 941 (13.92 %)
+- longitude: 54 941 (13.92 %)
+- evenement: 3 994 (1.01 %)
+- categorie_evenement: 3 994 (1.01 %)
+- moyen_alerte: 1 918 (0.49 %)
+- qui_alerte: 1 759 (0.45 %)
+- categorie_qui_alerte: 1 759 (0.45 %)
+- zone_responsabilite: 775 (0.20 %)
+- date_heure_fin_operation: 11 (0.00 %)
+
+Période des dates : 1984-08-16 16:30:00+00:00 à 2026-07-18 20:35:43+00:00
+
+Valeurs possibles de evenement :
+- Abordage: 1 339
+- Absence d'un moyen de communication: 33
+- Accident aéronautique: 1 421
+- Accident corporel: 2 923
+- Accident en mer: 433
+- Acte de piraterie / terrorisme: 371
+- Autre accident: 1 064
+- Autre événement: 35 941
+- Avarie de gréement: 472
+- Avarie de l'appareil à gouverner: 3 702
+- Avarie des systèmes de communication: 245
+- Avarie du système de propulsion: 47 875
+- Avarie électrique: 5 346
+- Baignade: 7 526
+- Blessé EvaMed: 2 669
+- Blessé EvaSan: 4 790
+- Blessé avec déroutement: 4 599
+- Blessé avec soin sans déroutement: 666
+- Blessé projection d'une équipe médicale: 204
+- Chasse sous-marine: 621
+- Chavirement: 9 185
+- Chute falaise / Emporté par une lame: 1 045
+- Collision: 79
+- Difficulté de manoeuvre: 45 322
+- Disparu en mer: 537
+- Découverte d'explosif: 1 837
+- Découverte de corps: 758
+- Démâtage: 3 161
+- Désarrimage cargaison: 54
+- Encalminage: 654
+- Engin dangereux à bord: 213
+- Explosif dans engin: 249
+- Explosion: 104
+- Heurt: 1 004
+- Homme à la mer: 4 953
+- Immigration clandestine: 6 380
+- Immobilisé dans engins / hélice engagée: 10 200
+- Incendie: 2 500
+- Incertitude: 8 276
+- Incertitude sur la position: 2 599
+- Inexpérience: 621
+- Isolement par la marée / Envasé: 4 820
+- Loisir nautique: 9
+- Malade EvaMed: 2 819
+- Malade EvaSan: 3 012
+- Malade avec déroutement: 3 210
+- Malade avec soin sans déroutement: 909
+- Malade projection d'une équipe médicale: 255
+- Mouillage immobilisé: 336
+- Naufrage: 159
+- Panne de carburant: 5 355
+- Perte de pontée: 52
+- Perte de stabilité / Ripage de cargaison: 298
+- Plongée avec bouteille: 5 784
+- Plongée en apnée: 1 537
+- Problème médical: 3 730
+- Rupture de mouillage: 10 359
+- Sans avarie en dérive: 6 574
+- Sans avarie inexpérience: 5 868
+- Situation indéterminée: 15 402
+- Ski nautique: 69
+- Suicide: 695
+- Talonnage: 393
+- Toutes fausses alertes: 61 216
+- Transport sanitaire île-continent: 4 882
+- Trouble à l'ordre public: 138
+- Voie d'eau: 8 634
+- [MANQUANT]: 3 994
+- Échouement: 22 276
+
+============================================================
+FICHIER : flotteurs
+============================================================
+Taille : 27.0 Mo
+Nombre de lignes : 322 869
+Nombre de colonnes : 7
+
+Valeurs manquantes par colonne :
+- numero_immatriculation: 186 285 (57.70 %)
+- numero_ordre: 78 076 (24.18 %)
+- pavillon: 21 796 (6.75 %)
+- resultat_flotteur: 4 214 (1.31 %)
+- type_flotteur: 2 920 (0.90 %)
+- categorie_flotteur: 2 920 (0.90 %)
+
+Valeurs possibles de categorie_flotteur :
+- Autre: 4 067
+- Aéronef: 2 386
+- Commerce: 38 734
+- Loisir nautique: 42 713
+- Plaisance: 190 150
+- Pêche: 41 899
+- [MANQUANT]: 2 920
+
+============================================================
+FICHIER : resultats_humain
+============================================================
+Taille : 15.2 Mo
+Nombre de lignes : 298 240
+Nombre de colonnes : 5
+
+Valeurs manquantes par colonne :
+Aucune
+
+============================================================
+FICHIER : operations_stats
+============================================================
+Taille : 92.0 Mo
+Nombre de lignes : 394 756
+Nombre de colonnes : 73
+
+Valeurs manquantes par colonne :
+- nom_dst: 390 133 (98.83 %)
+- nom_stm: 367 654 (93.13 %)
+- maree_port: 150 903 (38.23 %)
+- maree_coefficient: 150 903 (38.23 %)
+- maree_categorie: 150 903 (38.23 %)
+- prefecture_maritime: 64 358 (16.30 %)
+- phase_journee: 55 024 (13.94 %)
+- distance_cote_metres: 54 941 (13.92 %)
+- distance_cote_milles_nautiques: 54 941 (13.92 %)
+- est_vacances_scolaires: 21 702 (5.50 %)
+
+Période des dates : 1984-08-16 00:00:00 à 2026-07-18 00:00:00

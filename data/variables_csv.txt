@@ -1,0 +1,127 @@
+
+==========================================
+FICHIER : flotteurs.csv
+==========================================
+     1	operation_id
+     2	numero_ordre
+     3	pavillon
+     4	resultat_flotteur
+     5	type_flotteur
+     6	categorie_flotteur
+     7	numero_immatriculation
+
+==========================================
+FICHIER : operations.csv
+==========================================
+     1	operation_id
+     2	type_operation
+     3	pourquoi_alerte
+     4	moyen_alerte
+     5	qui_alerte
+     6	categorie_qui_alerte
+     7	cross
+     8	departement
+     9	est_metropolitain
+    10	evenement
+    11	categorie_evenement
+    12	autorite
+    13	seconde_autorite
+    14	zone_responsabilite
+    15	latitude
+    16	longitude
+    17	vent_direction
+    18	vent_direction_categorie
+    19	vent_force
+    20	mer_force
+    21	date_heure_reception_alerte
+    22	date_heure_fin_operation
+    23	numero_sitrep
+    24	cross_sitrep
+    25	fuseau_horaire
+    26	systeme_source
+
+==========================================
+FICHIER : operations_stats.csv
+==========================================
+     1	operation_id
+     2	date
+     3	annee
+     4	mois
+     5	jour
+     6	mois_texte
+     7	semaine
+     8	annee_semaine
+     9	jour_semaine
+    10	est_weekend
+    11	est_jour_ferie
+    12	est_vacances_scolaires
+    13	phase_journee
+    14	concerne_plongee
+    15	implique_wingfoil
+    16	avec_clandestins
+    17	distance_cote_metres
+    18	distance_cote_milles_nautiques
+    19	est_dans_stm
+    20	nom_stm
+    21	est_dans_dst
+    22	nom_dst
+    23	prefecture_maritime
+    24	maree_port
+    25	maree_coefficient
+    26	maree_categorie
+    27	nombre_personnes_blessees
+    28	nombre_personnes_assistees
+    29	nombre_personnes_decedees
+    30	nombre_personnes_decedees_accidentellement
+    31	nombre_personnes_decedees_naturellement
+    32	nombre_personnes_disparues
+    33	nombre_personnes_impliquees_dans_fausse_alerte
+    34	nombre_personnes_retrouvees
+    35	nombre_personnes_secourues
+    36	nombre_personnes_tirees_daffaire_seule
+    37	nombre_personnes_tous_deces
+    38	nombre_personnes_tous_deces_ou_disparues
+    39	nombre_personnes_impliquees
+    40	nombre_personnes_blessees_sans_clandestins
+    41	nombre_personnes_assistees_sans_clandestins
+    42	nombre_personnes_decedees_sans_clandestins
+    43	nombre_personnes_decedees_accidentellement_sans_clandestins
+    44	nombre_personnes_decedees_naturellement_sans_clandestins
+    45	nombre_personnes_disparues_sans_clandestins
+    46	nombre_personnes_impliquees_dans_fausse_alerte_sans_clandestins
+    47	nombre_personnes_retrouvees_sans_clandestins
+    48	nombre_personnes_secourues_sans_clandestins
+    49	nombre_personnes_tirees_daffaire_seule_sans_clandestins
+    50	nombre_personnes_tous_deces_sans_clandestins
+    51	nombre_personnes_tous_deces_ou_disparues_sans_clandestins
+    52	nombre_personnes_impliquees_sans_clandestins
+    53	nombre_flotteurs_commerce_impliques
+    54	nombre_flotteurs_peche_impliques
+    55	nombre_flotteurs_plaisance_impliques
+    56	nombre_flotteurs_loisirs_nautiques_impliques
+    57	nombre_aeronefs_impliques
+    58	nombre_flotteurs_autre_impliques
+    59	nombre_flotteurs_annexe_impliques
+    60	nombre_flotteurs_autre_loisir_nautique_impliques
+    61	nombre_flotteurs_canoe_kayak_aviron_impliques
+    62	nombre_flotteurs_engin_de_plage_impliques
+    63	nombre_flotteurs_kitesurf_impliques
+    64	nombre_flotteurs_plaisance_voile_legere_impliques
+    65	nombre_flotteurs_plaisance_a_moteur_impliques
+    66	nombre_flotteurs_plaisance_a_moteur_moins_8m_impliques
+    67	nombre_flotteurs_plaisance_a_moteur_plus_8m_impliques
+    68	nombre_flotteurs_plaisance_a_voile_impliques
+    69	nombre_flotteurs_planche_a_voile_impliques
+    70	nombre_flotteurs_ski_nautique_impliques
+    71	nombre_flotteurs_surf_impliques
+    72	nombre_flotteurs_vehicule_nautique_a_moteur_impliques
+    73	sans_flotteur_implique
+
+==========================================
+FICHIER : resultats_humain.csv
+==========================================
+     1	operation_id
+     2	categorie_personne
+     3	resultat_humain
+     4	nombre
+     5	dont_nombre_blesse
