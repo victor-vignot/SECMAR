@@ -1,3 +1,5 @@
+#fichier .gitignore
+
 # Environnement Python
 .venv/
 __pycache__/
