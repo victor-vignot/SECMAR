@@ -28,6 +28,10 @@ CSV_PATHS = {
     "operations_stats": RAW_DATA_DIR / "operations_stats.csv",
 }
 
+# Trait de côte mondial Natural Earth 1:10 000 000 (domaine public), utilisé
+# pour repérer les positions situées dans les terres.
+TERRES_PATH = RAW_DATA_DIR / "ne_10m_land.geojson"
+
 # --- Tables SQLite -------------------------------------------------------------
 
 # Tables demandées par la consigne : données brutes et données nettoyées.
@@ -54,6 +58,10 @@ DISTANCE_MAX_HISTOGRAMME_MN = 30.0
 
 # Largeur d'une classe de l'histogramme de distance (milles nautiques).
 LARGEUR_CLASSE_DISTANCE_MN = 0.5
+
+# Une position à terre à plus de cette distance de la côte est jugée fausse
+# (position par défaut) : elle est retirée, comme les positions (0, 0).
+DISTANCE_INTERIEURE_MAX_KM = 5.0
 
 # Nombre minimal d'opérations pour afficher une case de tableau croisé.
 EFFECTIF_MINIMAL = 30
@@ -109,15 +117,3 @@ CORRECTIONS_DEPARTEMENT = {"Réunion": "La Réunion"}
 
 # Valeur « tout sélectionner » des listes déroulantes.
 VALEUR_TOUTES = "toutes"
-
-
-# --- Compatibilité temporaire (jour 1 uniquement) -----------------------------
-# L'ancien code (queries.py, clean_data.py) utilise encore ces noms.
-# Ce bloc disparaît au jour 2, quand ces fichiers passent à la table `cleaned`.
-TABLE_OPERATIONS = "raw_operations"
-TABLE_FLOTTEURS = "raw_flotteurs"
-TABLE_RESULTATS_HUMAIN = "raw_resultats_humain"
-TABLE_OPERATIONS_STATS = "raw_operations_stats"
-ZONE_COLUMN = "cross"
-EVENT_COLUMN = "categorie_evenement"
-YEAR_COLUMN = "annee"

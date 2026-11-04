@@ -1,95 +1,95 @@
+"""Carte géographique des opérations (représentation géolocalisée)."""
 
-"""Composants de la carte géographique des opérations."""
-
+import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from dash import dcc, html
 
 from config import MAX_POINTS_CARTE
-from src.components.theme import STYLE_CARTE
+from src.components.theme import COULEURS_FAMILLES, LAYOUT_GRAPHIQUE, STYLE_FOND_CARTE
+from src.utils.familles import ORDRE_FAMILLES
 
 
-# Couleurs attribuées aux catégories originales des événements.
-COULEURS_EVENEMENTS = {
-    "Fausses alertes": "#2EAD62",
-    "Autres affaires nécessitant opération": "#3498DB",
-    "Avaries non suivies d'accident navire": "#F1C40F",
-    "Accidents de navire": "#F28C28",
-    "Accidents individuels à personnes non embarquées": "#FF6B6B",
-    "Accidents individuels à personnes embarquées": "#E53935",
-    "Accidents individuels à personnes": "#8B0000",
-}
-
-
-# Crée la carte des opérations individuelles.
-def creer_carte(donnees):
-    donnees = donnees.dropna(
-        subset=["latitude", "longitude"]
-    ).copy()
-
-    # Écarte les coordonnées impossibles avant de tracer la carte.
-    donnees = donnees[
-        donnees["latitude"].between(-90, 90)
-        & donnees["longitude"].between(-180, 180)
+def preparer_points_carte(donnees: pd.DataFrame) -> pd.DataFrame:
+    """Garde les positions valides et limite le nombre de points affichés."""
+    points = donnees.dropna(subset=["latitude", "longitude"])
+    points = points[
+        points["latitude"].between(-90, 90)
+        & points["longitude"].between(-180, 180)
+        # Les positions (0, 0) sont des valeurs par défaut, pas des lieux réels.
+        & ~(points["latitude"].eq(0) & points["longitude"].eq(0))
     ]
+    if len(points) > MAX_POINTS_CARTE:
+        # Échantillon reproductible pour garder une carte fluide.
+        points = points.sample(n=MAX_POINTS_CARTE, random_state=42)
+    return points
 
-    # Limite le nombre de points pour garder une carte fluide.
-    if len(donnees) > MAX_POINTS_CARTE:
-        donnees = donnees.sample(
-            n=MAX_POINTS_CARTE,
-            random_state=42,
-        )
 
+def decrire_positions(donnees: pd.DataFrame) -> str:
+    """Phrase indiquant combien d'opérations ne figurent pas sur la carte."""
+    sans_position = int(donnees["latitude"].isna().sum())
+    if sans_position == 0:
+        return "Toutes les opérations de la sélection ont une position."
+    part = sans_position / len(donnees) * 100
+    nombre = f"{sans_position:,}".replace(",", " ")
+    return (
+        f"{nombre} opérations de la sélection ({part:.0f} %) n'ont pas de position "
+        "fiable (position absente, à (0, 0) ou à plus de 5 km dans les terres) : "
+        "elles comptent dans les indicateurs mais pas sur la carte."
+    )
+
+
+def creer_carte(donnees: pd.DataFrame) -> go.Figure:
+    """Crée la carte des opérations, colorées par famille d'événements."""
+    points = preparer_points_carte(donnees)
     figure = px.scatter_map(
-        donnees,
+        points,
         lat="latitude",
         lon="longitude",
-        color="categorie_evenement",
-        color_discrete_map=COULEURS_EVENEMENTS,
+        color="famille",
+        color_discrete_map=COULEURS_FAMILLES,
+        category_orders={"famille": ORDRE_FAMILLES},
         hover_data={
             "operation_id": True,
             "cross": True,
+            "annee": True,
             "latitude": False,
             "longitude": False,
         },
-        map_style="carto-positron",
-        zoom=3,
-        center={"lat": 46.5, "lon": 2.5},
         labels={
-            "categorie_evenement": "Type d'événement",
+            "famille": "Famille d'événements",
             "operation_id": "N° d'opération",
             "cross": "CROSS",
+            "annee": "Année",
         },
+        map_style=STYLE_FOND_CARTE,
+        zoom=4.3,
+        center={"lat": 46.5, "lon": 2.5},
     )
-
-    figure.update_traces(
-        marker={"size": 8, "opacity": 0.75}
-    )
-
+    figure.update_traces(marker={"size": 6, "opacity": 0.7})
     figure.update_layout(
-        height=480,
+        height=520,
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
-        legend_title_text="Type d'événement",
+        paper_bgcolor=LAYOUT_GRAPHIQUE["paper_bgcolor"],
+        font=LAYOUT_GRAPHIQUE["font"],
+        legend={"title": {"text": "Famille d'événements"}, "itemsizing": "constant"},
     )
-
     return figure
 
 
-# Construit la section contenant la carte.
-def creer_section_carte():
+def creer_section_carte() -> html.Section:
+    """Construit la section contenant la carte."""
     return html.Section(
-        style={**STYLE_CARTE, "marginBottom": "24px"},
+        className="panneau panneau-carte",
         children=[
-            html.H2(
-                "Répartition géographique des opérations",
-                style={"fontSize": "19px", "marginTop": "0"},
-            ),
+            html.H2("Où ont lieu les opérations ?", className="titre-section"),
+            dcc.Graph(id="graphique-carte", config={"displayModeBar": False}),
+            html.P(id="note-carte", className="legende legende-forte"),
             html.P(
-                "Chaque point représente une opération de secours.",
-                style={"color": "#64748B", "fontSize": "14px"},
-            ),
-            dcc.Graph(
-                id="graphique-carte",
-                config={"displayModeBar": False},
+                f"Chaque point est une opération (au plus {MAX_POINTS_CARTE:,} points "
+                "tirés au hasard pour garder la carte fluide). Cliquer sur une famille "
+                "dans la légende pour l'afficher ou la masquer.".replace(",", " "),
+                className="legende",
             ),
         ],
     )

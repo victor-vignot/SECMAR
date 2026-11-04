@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bouée de sauvetage">
+  <circle cx="32" cy="32" r="27" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+  <g fill="none" stroke="#C0563F" stroke-width="14">
+    <path d="M32 5 A27 27 0 0 1 51.1 12.9"/>
+    <path d="M59 32 A27 27 0 0 1 51.1 51.1"/>
+    <path d="M32 59 A27 27 0 0 1 12.9 51.1"/>
+    <path d="M5 32 A27 27 0 0 1 12.9 12.9"/>
+  </g>
+</svg>

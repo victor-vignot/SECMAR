@@ -1,0 +1,81 @@
+/* Charte « Signalétique portuaire » : bandeau bleu port, titres condensés,
+   repères de couleur inspirés du balisage (vert, jaune, rouge).
+   Feuille chargée automatiquement par Dash (dossier assets/).
+   Polices : Barlow Condensed et Public Sans, SIL Open Font License (voir fonts/). */
+
+@font-face { font-family: "Barlow Condensed"; src: url("fonts/BarlowCondensed-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Public Sans"; src: url("fonts/PublicSans.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
+
+:root {
+    --port: #1F4E79;
+    --port-fonce: #163A5C;
+    --quai: #EEF1F3;
+    --texte: #1E2A33;
+    --gris: #5E6B76;
+    --trait: #DDE3E8;
+    --babord: #B5442F;
+    --tribord: #3C7A5A;
+    --jaune: #E3B23C;
+    --Dash-Fill-Interactive-Strong: var(--port);
+    --Dash-Stroke-Strong: #A9B6C1;
+    --Dash-Text-Primary: var(--texte);
+    --Dash-Text-Strong: var(--texte);
+}
+
+body { margin: 0; background: var(--quai); color: var(--texte); font: 400 15px/1.55 "Public Sans", "Segoe UI", Arial, sans-serif; }
+.page { max-width: 1360px; margin: 0 auto; padding: 0 32px 32px; }
+
+/* Bandeau pleine largeur, comme un panneau d'entrée de port. */
+.entete {
+    display: flex; align-items: center; gap: 22px;
+    margin: 0 calc(50% - 50vw) 0; padding: 26px calc(50vw - 50% + 32px);
+    background: var(--port-fonce); color: #FFFFFF;
+    border-bottom: 6px solid var(--port);
+}
+.entete-logo { width: 62px; height: 62px; }
+.entete h1 { font: 600 52px/0.95 "Barlow Condensed", "Arial Narrow", sans-serif; letter-spacing: 0.03em; margin: 0; }
+.entete p { margin: 6px 0 0; font-size: 16px; color: #C9D6E3; }
+
+.panneau { background: #FFFFFF; border: 1px solid var(--trait); border-radius: 8px; padding: 22px 24px; margin-bottom: 24px; }
+.panneau-filtres { border-radius: 0 0 8px 8px; border-top: 0; }
+.titre-section { font: 600 26px/1.1 "Barlow Condensed", "Arial Narrow", sans-serif; margin: 0 0 14px; color: var(--port-fonce); }
+.legende { font-size: 13px; color: var(--gris); margin: 10px 0 0; }
+.legende-forte { color: var(--texte); font-weight: 600; }
+
+.grille-filtres { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 24px; align-items: start; }
+.libelle-filtre { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+/* Indicateurs : grands chiffres condensés, repère de couleur à gauche. */
+.grille-kpi { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.kpi { background: #FFFFFF; border: 1px solid var(--trait); border-left: 6px solid var(--port); border-radius: 8px; padding: 16px 18px; }
+.kpi--secondaire { border-left-color: var(--tribord); }
+.kpi--alerte { border-left-color: var(--jaune); }
+.kpi--grave { border-left-color: var(--babord); }
+.kpi-titre { margin: 0 0 4px; font-size: 14px; color: var(--gris); }
+.kpi-valeur { margin: 0 0 2px; font: 600 42px/1 "Barlow Condensed", "Arial Narrow", sans-serif; font-variant-numeric: tabular-nums; color: var(--texte); }
+.kpi-description { margin: 0; font-size: 12px; color: var(--gris); }
+
+/* Onglets : plaques de signalisation. */
+.onglets { margin-bottom: 18px; }
+.onglet.tab { border: 1px solid var(--trait) !important; background: var(--quai) !important; border-radius: 6px; margin-right: 8px; padding: 9px 18px !important; font: 600 19px/1.2 "Barlow Condensed", sans-serif; color: var(--port-fonce); }
+.onglet.tab--selected { background: var(--port) !important; border-color: var(--port) !important; color: #FFFFFF !important; }
+.question-onglet { font-size: 16px; font-weight: 600; color: var(--port); margin: 4px 0 18px; }
+.contenu-onglet { min-height: 420px; }
+
+.grille-graphiques { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.bloc-graphique { background: #FFFFFF; border: 1px solid var(--trait); border-radius: 8px; padding: 12px 14px; }
+.bloc-graphique.pleine-largeur { grid-column: 1 / -1; }
+.note-lecture { font-size: 13px; color: var(--gris); margin: 6px 4px 2px; }
+
+.pied-page { font-size: 13px; color: var(--gris); text-align: center; padding: 18px 0 4px; }
+.pied-page a { color: var(--port); }
+
+:focus-visible { outline: 3px solid var(--jaune); outline-offset: 2px; }
+
+@media (max-width: 1000px) {
+    .page { padding: 0 16px 24px; }
+    .entete { padding: 20px calc(50vw - 50% + 16px); }
+    .entete h1 { font-size: 40px; }
+    .grille-filtres, .grille-graphiques { grid-template-columns: 1fr; }
+    .grille-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

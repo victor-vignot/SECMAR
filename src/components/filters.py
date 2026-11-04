@@ -1,100 +1,89 @@
-
-"""Filtres de période, de CROSS et de catégorie d'événement."""
+"""Panneau de filtres : période, CROSS, famille d'événements, périmètre."""
 
 from dash import dcc, html
 
-from config import ANNEE_MIN, ANNEE_MAX
-from src.components.theme import COULEUR_SECONDAIRE, STYLE_CARTE
+from config import (
+    ANNEE_DEBUT_DEFAUT,
+    ANNEE_FIN_DEFAUT,
+    ANNEE_MAX,
+    ANNEE_MIN,
+    VALEUR_TOUTES,
+)
+from src.utils.queries import (
+    PERIMETRE_METROPOLE,
+    PERIMETRE_OUTRE_MER,
+    PERIMETRE_TOUT,
+)
 
-VALEUR_TOUTES = "toutes"
 
-
-# Prépare les options d'une liste déroulante.
-def _options_dropdown(valeurs, libelle_tout):
+def _options_dropdown(valeurs: list[str], libelle_tout: str) -> list[dict[str, str]]:
+    """Prépare les options d'une liste déroulante avec un choix « tout »."""
     options = [{"label": libelle_tout, "value": VALEUR_TOUTES}]
-    options.extend(
-        {"label": valeur, "value": valeur}
-        for valeur in valeurs
-    )
+    options.extend({"label": valeur, "value": valeur} for valeur in valeurs)
     return options
 
 
-# Construit le panneau des trois filtres.
-def creer_panneau_filtres(cross, evenements):
+def _bloc_filtre(
+    libelle: str, controle: dcc.Dropdown | dcc.RangeSlider | dcc.RadioItems
+) -> html.Div:
+    """Associe un libellé à un contrôle de filtre."""
+    return html.Div(
+        className="bloc-filtre",
+        children=[html.Label(libelle, className="libelle-filtre"), controle],
+    )
+
+
+def creer_panneau_filtres(cross: list[str], familles: list[str]) -> html.Section:
+    """Construit le panneau des quatre filtres communs à toute la page."""
+    curseur_periode = dcc.RangeSlider(
+        id="filtre-periode",
+        min=ANNEE_MIN,
+        max=ANNEE_MAX,
+        step=1,
+        value=[ANNEE_DEBUT_DEFAUT, ANNEE_FIN_DEFAUT],
+        marks={annee: str(annee) for annee in range(ANNEE_MIN, ANNEE_MAX + 1, 10)},
+        allowCross=False,
+        tooltip={"placement": "bottom"},
+    )
+    liste_cross = dcc.Dropdown(
+        id="filtre-cross",
+        options=_options_dropdown(cross, "Tous les CROSS"),
+        value=VALEUR_TOUTES,
+        clearable=False,
+    )
+    liste_familles = dcc.Dropdown(
+        id="filtre-famille",
+        options=_options_dropdown(familles, "Toutes les familles"),
+        value=VALEUR_TOUTES,
+        clearable=False,
+    )
+    choix_perimetre = dcc.RadioItems(
+        id="filtre-perimetre",
+        options=[
+            {"label": "Tout", "value": PERIMETRE_TOUT},
+            {"label": "Métropole", "value": PERIMETRE_METROPOLE},
+            {"label": "Outre-mer", "value": PERIMETRE_OUTRE_MER},
+        ],
+        value=PERIMETRE_TOUT,
+        inline=True,
+        inputStyle={"marginRight": "4px", "marginLeft": "10px"},
+    )
     return html.Section(
-        style={**STYLE_CARTE, "marginBottom": "24px"},
+        className="panneau panneau-filtres",
         children=[
-            html.H2(
-                "Explorer les opérations",
-                style={"fontSize": "18px", "marginTop": "0"},
-            ),
+            html.H2("Explorer les opérations", className="titre-section"),
             html.Div(
-                style={
-                    "display": "grid",
-                    "gridTemplateColumns": (
-                        "repeat(3, minmax(0, 1fr))"
-                    ),
-                    "gap": "20px",
-                },
+                className="grille-filtres",
                 children=[
-                    html.Div([
-                        html.Label("Période (années)"),
-                        html.Div(
-                            style={"paddingTop": "10px"},
-                            children=dcc.RangeSlider(
-                                id="filtre-periode",
-                                min=ANNEE_MIN,
-                                max=ANNEE_MAX,
-                                step=1,
-                                value=[ANNEE_MIN, ANNEE_MAX],
-                                marks={
-                                    annee: str(annee)
-                                    for annee in range(
-                                        ANNEE_MIN,
-                                        ANNEE_MAX + 1,
-                                        5,
-                                    )
-                                },
-                                allowCross=False,
-                            ),
-                        ),
-                    ]),
-                    html.Div([
-                        html.Label("CROSS"),
-                        dcc.Dropdown(
-                            id="filtre-zone",
-                            options=_options_dropdown(
-                                cross,
-                                "Tous les CROSS",
-                            ),
-                            value=VALEUR_TOUTES,
-                            clearable=False,
-                            placeholder="Sélectionner un CROSS",
-                        ),
-                    ]),
-                    html.Div([
-                        html.Label("Type d'événement"),
-                        dcc.Dropdown(
-                            id="filtre-evenement",
-                            options=_options_dropdown(
-                                evenements,
-                                "Tous les événements",
-                            ),
-                            value=VALEUR_TOUTES,
-                            clearable=False,
-                            placeholder="Sélectionner un événement",
-                        ),
-                    ]),
+                    _bloc_filtre("Période (années)", curseur_periode),
+                    _bloc_filtre("CROSS", liste_cross),
+                    _bloc_filtre("Famille d'événements", liste_familles),
+                    _bloc_filtre("Périmètre", choix_perimetre),
                 ],
             ),
             html.P(
-                "Les indicateurs et les graphiques suivent ces filtres.",
-                style={
-                    "fontSize": "12px",
-                    "color": COULEUR_SECONDAIRE,
-                    "marginTop": "16px",
-                    "marginBottom": "0",
-                },
+                "Tous les indicateurs et graphiques suivent ces filtres.",
+                className="legende",
             ),
         ],
     )

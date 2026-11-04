@@ -1,192 +1,154 @@
-"""Requêtes SQLite utilisées par le tableau de bord."""
+"""Requêtes SQLite utilisées par le tableau de bord.
 
-import sqlite3
+Une seule requête filtrée lit la table `cleaned` ; son résultat est mis en
+cache pour que tous les graphiques d'un même filtrage le réutilisent sans
+relire la base.
+"""
+
+from dataclasses import dataclass
+from functools import lru_cache
 
 import pandas as pd
 
 from config import (
-    ANNEE_MAX,
-    ANNEE_MIN,
-    DB_PATH,
-    TABLE_OPERATIONS,
-    TABLE_OPERATIONS_STATS,
+    ANNEE_DEBUT_DEFAUT,
+    ANNEE_FIN_DEFAUT,
+    CLASSES_MER,
+    CLASSES_VENT,
+    GRAVITES,
+    SAISONS,
+    TABLE_CLEANED,
+    VALEUR_TOUTES,
 )
+from src.utils.database import ouvrir_connexion
+from src.utils.familles import ORDRE_FAMILLES
+
+# Valeurs du filtre de périmètre géographique.
+PERIMETRE_TOUT = VALEUR_TOUTES
+PERIMETRE_METROPOLE = "metropole"
+PERIMETRE_OUTRE_MER = "outre-mer"
+
+# Colonnes lues pour le tableau de bord (les autres restent dans la base).
+COLONNES_DASHBOARD = [
+    "operation_id",
+    "annee",
+    "mois",
+    "saison",
+    "cross",
+    "departement",
+    "est_metropolitain",
+    "zone",
+    "famille",
+    "evenement",
+    "est_evacuation",
+    "latitude",
+    "longitude",
+    "vent_force",
+    "mer_force",
+    "classe_vent",
+    "classe_mer",
+    "duree_heures",
+    "distance_cote_mn",
+    "personnes_impliquees",
+    "personnes_impliquees_sans_clandestins",
+    "personnes_blessees",
+    "personnes_decedees",
+    "personnes_disparues",
+    "personnes_secourues",
+    "gravite",
+]
+
+# Ordre logique des catégories, utilisé par les graphiques.
+ORDRES_CATEGORIES: dict[str, list[str]] = {
+    "famille": ORDRE_FAMILLES,
+    "classe_vent": list(CLASSES_VENT),
+    "classe_mer": list(CLASSES_MER),
+    "saison": list(SAISONS),
+    "gravite": GRAVITES,
+}
 
 
-# Charge les valeurs disponibles dans les filtres.
-def charger_options_filtres():
-    with sqlite3.connect(DB_PATH) as connexion:
-        zones = pd.read_sql_query(
-            f"""
-            SELECT DISTINCT cross
-            FROM {TABLE_OPERATIONS}
-            WHERE cross IS NOT NULL
-              AND TRIM(cross) != ''
-              AND LOWER(TRIM(cross)) != 'adge'
-            ORDER BY cross
-            """,
+@dataclass(frozen=True)
+class Filtres:
+    """Valeurs sélectionnées dans le panneau de filtres."""
+
+    annee_debut: int = ANNEE_DEBUT_DEFAUT
+    annee_fin: int = ANNEE_FIN_DEFAUT
+    cross: str = VALEUR_TOUTES
+    famille: str = VALEUR_TOUTES
+    perimetre: str = PERIMETRE_TOUT
+
+
+def charger_options_filtres() -> tuple[list[str], list[str]]:
+    """Retourne les CROSS et les familles disponibles dans la base."""
+    with ouvrir_connexion() as connexion:
+        cross = pd.read_sql_query(
+            f"SELECT DISTINCT cross FROM {TABLE_CLEANED} "
+            "WHERE cross IS NOT NULL ORDER BY cross",
             connexion,
         )["cross"].tolist()
-
-        evenements = pd.read_sql_query(
-            f"""
-            SELECT DISTINCT categorie_evenement
-            FROM {TABLE_OPERATIONS}
-            WHERE categorie_evenement IS NOT NULL
-              AND TRIM(categorie_evenement) != ''
-            ORDER BY categorie_evenement
-            """,
-            connexion,
-        )["categorie_evenement"].tolist()
-
-    return zones, evenements
-
-
-# Récupère les opérations correspondant aux filtres.
-def charger_operations(annee_debut, annee_fin, zone, evenement):
-    requete = f"""
-        SELECT
-            o.operation_id,
-            o.cross,
-            o.categorie_evenement,
-            o.evenement,
-            o.latitude,
-            o.longitude,
-            o.vent_force,
-            o.mer_force,
-            o.date_heure_reception_alerte,
-            o.date_heure_fin_operation,
-            s.annee,
-            s.nombre_personnes_secourues,
-            s.nombre_personnes_blessees,
-            s.nombre_personnes_decedees,
-            s.nombre_personnes_disparues
-        FROM {TABLE_OPERATIONS} AS o
-        JOIN {TABLE_OPERATIONS_STATS} AS s
-            ON o.operation_id = s.operation_id
-        WHERE s.annee BETWEEN ? AND ?
-    """
-
-    parametres = [int(annee_debut), int(annee_fin)]
-
-    if zone and zone != "toutes":
-        requete += " AND o.cross = ?"
-        parametres.append(zone)
-
-    if evenement and evenement != "toutes":
-        requete += " AND o.categorie_evenement = ?"
-        parametres.append(evenement)
-
-    with sqlite3.connect(DB_PATH) as connexion:
-        donnees = pd.read_sql_query(
-            requete,
-            connexion,
-            params=parametres,
+        familles_presentes = set(
+            pd.read_sql_query(
+                f"SELECT DISTINCT famille FROM {TABLE_CLEANED}", connexion
+            )["famille"]
         )
+    familles = [f for f in ORDRE_FAMILLES if f in familles_presentes]
+    return cross, familles
 
+
+def construire_requete(filtres: Filtres) -> tuple[str, list[int | str]]:
+    """Construit la requête SQL paramétrée correspondant aux filtres."""
+    requete = (
+        f"SELECT {', '.join(COLONNES_DASHBOARD)} FROM {TABLE_CLEANED} "
+        "WHERE annee BETWEEN ? AND ?"
+    )
+    parametres: list[int | str] = [
+        int(filtres.annee_debut),
+        int(filtres.annee_fin),
+    ]
+    if filtres.cross != VALEUR_TOUTES:
+        requete += " AND cross = ?"
+        parametres.append(filtres.cross)
+    if filtres.famille != VALEUR_TOUTES:
+        requete += " AND famille = ?"
+        parametres.append(filtres.famille)
+    if filtres.perimetre == PERIMETRE_METROPOLE:
+        requete += " AND est_metropolitain = 1"
+    elif filtres.perimetre == PERIMETRE_OUTRE_MER:
+        requete += " AND est_metropolitain = 0"
+    return requete, parametres
+
+
+def typer_categories(donnees: pd.DataFrame) -> pd.DataFrame:
+    """Transforme les colonnes de classes en catégories ordonnées."""
+    for colonne, ordre in ORDRES_CATEGORIES.items():
+        if colonne in donnees:
+            donnees[colonne] = pd.Categorical(
+                donnees[colonne], categories=ordre, ordered=True
+            )
     return donnees
 
 
-# Prépare les données des KPI, graphiques et de la carte.
-def charger_donnees_dashboard(
-    annee_debut=ANNEE_MIN,
-    annee_fin=ANNEE_MAX,
-    zone="toutes",
-    evenement="toutes",
-):
-    donnees = charger_operations(
-        annee_debut,
-        annee_fin,
-        zone,
-        evenement,
-    )
+@lru_cache(maxsize=16)
+def charger_operations(filtres: Filtres) -> pd.DataFrame:
+    """Charge les opérations correspondant aux filtres (résultat en cache).
 
-    colonnes_numeriques = [
-        "latitude",
-        "longitude",
-        "vent_force",
-        "mer_force",
-        "nombre_personnes_secourues",
-        "nombre_personnes_blessees",
-        "nombre_personnes_decedees",
-        "nombre_personnes_disparues",
-    ]
+    Le DataFrame retourné est partagé entre les graphiques : il ne doit pas
+    être modifié en place (travailler sur une copie si nécessaire).
+    """
+    requete, parametres = construire_requete(filtres)
+    with ouvrir_connexion() as connexion:
+        donnees = pd.read_sql_query(requete, connexion, params=parametres)
+    return typer_categories(donnees)
 
-    for colonne in colonnes_numeriques:
-        donnees[colonne] = pd.to_numeric(
-            donnees[colonne],
-            errors="coerce",
-        )
 
-    debut = pd.to_datetime(
-        donnees["date_heure_reception_alerte"],
-        errors="coerce",
-        utc=True,
-    )
-    fin = pd.to_datetime(
-        donnees["date_heure_fin_operation"],
-        errors="coerce",
-        utc=True,
-    )
-
-    donnees["duree_heures"] = (
-        fin - debut
-    ).dt.total_seconds() / 3600
-
-    # Classe les opérations selon les conséquences humaines déclarées.
-    # Cette classification est un indicateur simple, pas une expertise
-    # complète de la gravité de chaque événement.
-    donnees["gravite"] = "Aucun blessé, décès ou disparu"
-
-    personnes_blessees = donnees[
-        "nombre_personnes_blessees"
-    ].fillna(0)
-
-    personnes_decedees = donnees[
-        "nombre_personnes_decedees"
-    ].fillna(0)
-
-    personnes_disparues = donnees[
-        "nombre_personnes_disparues"
-    ].fillna(0)
-
-    donnees.loc[
-        personnes_blessees.gt(0),
-        "gravite",
-    ] = "Blessés"
-
-    donnees.loc[
-        personnes_decedees.gt(0) | personnes_disparues.gt(0),
-        "gravite",
-    ] = "Décès ou disparus"
-
-    donnees["gravite"] = pd.Categorical(
-        donnees["gravite"],
-        categories=[
-            "Aucun blessé, décès ou disparu",
-            "Blessés",
-            "Décès ou disparus",
-        ],
-        ordered=True,
-    )
-
+def calculer_kpi(donnees: pd.DataFrame) -> dict[str, float | None]:
+    """Calcule les indicateurs clés affichés en tête de page."""
+    duree_mediane = donnees["duree_heures"].median()
     return {
-        "operations": donnees,
-        "annuel": (
-            donnees.groupby("annee", as_index=False)
-            .agg(nombre_operations=("operation_id", "nunique"))
-            .sort_values("annee")
-        ),
-        "evenements": (
-            donnees.groupby("categorie_evenement", dropna=True)
-            .agg(nombre_operations=("operation_id", "nunique"))
-            .reset_index()
-            .sort_values("nombre_operations", ascending=False)
-        ),
-        "evenements_detailles": (
-            donnees.groupby("evenement", dropna=True)
-            .agg(nombre_operations=("operation_id", "nunique"))
-            .reset_index()
-            .sort_values("nombre_operations", ascending=False)
-        ),
+        "operations": float(len(donnees)),
+        "secourues": float(donnees["personnes_secourues"].sum()),
+        "blessees": float(donnees["personnes_blessees"].sum()),
+        "decedees": float(donnees["personnes_decedees"].sum()),
+        "duree_mediane": None if pd.isna(duree_mediane) else float(duree_mediane),
     }

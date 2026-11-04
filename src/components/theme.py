@@ -1,25 +1,70 @@
+"""Charte graphique « Signalétique portuaire » : couleurs des figures Plotly.
 
-# Couleurs principales du tableau de bord.
-COULEUR_ORANGE = "#E8730C"
-COULEUR_TURQUOISE = "#1FA7A0"
-COULEUR_TEXTE = "#263238"
-COULEUR_SECONDAIRE = "#64748B"
-COULEUR_BORDURE = "#E5E7EB"
+Les couleurs de la page (fond, cartes, typographie) sont dans
+`assets/style.css` ; ce fichier ne contient que ce que Plotly doit connaître.
+Changer de charte = remplacer ce fichier et `assets/style.css`.
+"""
+
+from typing import Any
+
+# --- Couleurs de base ----------------------------------------------------------
+COULEUR_PRINCIPALE = "#1F4E79"
+COULEUR_ACCENT = "#B5442F"
+COULEUR_TEXTE = "#1E2A33"
+COULEUR_SECONDAIRE = "#5E6B76"
+COULEUR_BORDURE = "#DDE3E8"
 COULEUR_FOND = "#FFFFFF"
-FOND_PAGE = "#F4F6F6"
+POLICE = "'Public Sans', 'Segoe UI', Arial, sans-serif"
 
-# Style commun des cartes.
-STYLE_CARTE = {
-    "backgroundColor": COULEUR_FOND,
-    "border": f"1px solid {COULEUR_BORDURE}",
-    "borderRadius": "12px",
-    "padding": "20px",
+# Couleur des séries uniques (barres, boîtes, histogramme).
+COULEUR_SERIE = "#1F4E79"
+COULEUR_SERIE_CLAIRE = "rgba(31, 78, 121, 0.22)"
+
+# Couleur fixe par famille : une famille garde la même couleur partout.
+COULEURS_FAMILLES = {
+    "Avarie ou panne": "#E3B23C",
+    "Accident de navire": "#B5442F",
+    "Difficulté de navigation": "#7BA7C7",
+    "Personne à la mer ou disparue": "#7A1F1F",
+    "Baignade et loisirs": "#3C7A5A",
+    "Médical": "#5B4B8A",
+    "Fausse alerte ou situation indéterminée": "#9AA5B1",
+    "Sûreté et migrations": "#1F4E79",
+    "Autre": "#C5CCD3",
+    "Non renseigné": "#E6EAEE",
 }
 
-# Mise en page commune des graphiques.
-LAYOUT_GRAPHIQUE = {
-    "height": 330,
-    "margin": {"l": 10, "r": 10, "t": 20, "b": 10},
+# Du moins grave au plus grave.
+COULEURS_GRAVITE = {
+    "Aucun blessé, décès ou disparu": "#E6EBEF",
+    "Blessés": "#E3B23C",
+    "Décès ou disparus": "#B5442F",
+}
+
+# Échelle continue des cartes de chaleur (pourcentages).
+ECHELLE_CHALEUR = [[0.0, "#FFFFFF"], [0.5, "#8FB3D1"], [1.0, "#1F4E79"]]
+
+# Fond de carte (tuiles libres, sans clé d'accès).
+STYLE_FOND_CARTE = "carto-positron"
+
+# --- Mise en page commune des figures Plotly -------------------------------------
+_AXE: dict[str, Any] = {
+    "gridcolor": COULEUR_BORDURE,
+    "zerolinecolor": COULEUR_BORDURE,
+    "linecolor": COULEUR_BORDURE,
+}
+
+LAYOUT_GRAPHIQUE: dict[str, Any] = {
+    "height": 380,
+    "margin": {"l": 10, "r": 10, "t": 64, "b": 10},
     "paper_bgcolor": COULEUR_FOND,
     "plot_bgcolor": COULEUR_FOND,
+    "font": {"family": POLICE, "color": COULEUR_TEXTE, "size": 13},
+    "title": {"x": 0, "xanchor": "left", "font": {"size": 16, "color": COULEUR_TEXTE}},
+    "legend": {"title": {"text": ""}, "bgcolor": "rgba(0,0,0,0)"},
+    "hoverlabel": {"font": {"family": POLICE}},
+    "xaxis": _AXE,
+    "yaxis": _AXE,
+    # Format français : virgule décimale, espace pour les milliers.
+    "separators": ", ",
 }

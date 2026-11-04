@@ -1,32 +1,48 @@
-#fichier get_data.py
+"""Téléchargement des données brutes.
+
+- les fichiers CSV SECMAR depuis data.gouv.fr ;
+- le trait de côte Natural Earth (contrôle des positions).
+Les fichiers sont enregistrés tels quels dans `data/raw/`.
+Lancement : `uv run python -m src.utils.get_data`
+"""
+
+from pathlib import Path
 from urllib.request import Request, urlopen
 
-from config import CSV_PATHS, RAW_DATA_DIR
+from config import CSV_PATHS, RAW_DATA_DIR, TERRES_PATH
 
+# Ressources stables data.gouv.fr du jeu « Opérations coordonnées par les CROSS ».
+RACINE_API = "https://www.data.gouv.fr/api/1/datasets/r/"
 URLS = {
-    "operations": "https://www.data.gouv.fr/api/1/datasets/r/fae6bc13-fe4c-4838-b281-b16628b7babe",
-    "flotteurs": "https://www.data.gouv.fr/api/1/datasets/r/ae0e17e4-7117-45f0-80c4-b11b38f31c5c",
-    "resultats_humain": "https://www.data.gouv.fr/api/1/datasets/r/8eb7f207-1ce5-460c-b941-5f1761a79c46",
-    "operations_stats": "https://www.data.gouv.fr/api/1/datasets/r/5d3c65fb-c861-4b22-b8aa-1eab58e3d9db",
+    "operations": RACINE_API + "fae6bc13-fe4c-4838-b281-b16628b7babe",
+    "flotteurs": RACINE_API + "ae0e17e4-7117-45f0-80c4-b11b38f31c5c",
+    "resultats_humain": RACINE_API + "8eb7f207-1ce5-460c-b941-5f1761a79c46",
+    "operations_stats": RACINE_API + "5d3c65fb-c861-4b22-b8aa-1eab58e3d9db",
+    "terres": (
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
+        "v5.1.2/geojson/ne_10m_land.geojson"
+    ),
 }
 
+# Fichier de destination de chaque ressource.
+DESTINATIONS = {**CSV_PATHS, "terres": TERRES_PATH}
 
-def download_file(url, destination):
+
+def download_file(url: str, destination: Path) -> None:
     """Télécharge une ressource sans transformer son contenu."""
     request = Request(url, headers={"User-Agent": "SECMAR-course-project"})
 
-    with urlopen(request, timeout=120) as response:
-        with destination.open("wb") as output:
-            while chunk := response.read(1024 * 1024):
-                output.write(chunk)
+    with urlopen(request, timeout=120) as response, destination.open("wb") as output:
+        while chunk := response.read(1024 * 1024):
+            output.write(chunk)
 
 
-def main():
-    """Télécharge les CSV absents du répertoire data/raw/."""
+def main() -> None:
+    """Télécharge les fichiers absents du répertoire data/raw/."""
     RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     for name, url in URLS.items():
-        destination = CSV_PATHS[name]
+        destination = DESTINATIONS[name]
 
         if destination.exists():
             print(f"[CONSERVÉ] {destination} existe déjà.")

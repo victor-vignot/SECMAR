@@ -1,186 +1,109 @@
-
 """Page principale du tableau de bord SECMAR."""
 
-import pandas as pd
-from dash import Input, Output, html
+from dash import Dash, Input, Output, html
 
-from src.components.carte import creer_carte, creer_section_carte
+from src.components.carte import creer_carte, creer_section_carte, decrire_positions
 from src.components.filters import creer_panneau_filtres
-from src.components.kpi import creer_carte_kpi
-from src.components.theme import (
-    COULEUR_ORANGE,
-    COULEUR_TEXTE,
-    COULEUR_TURQUOISE,
-    FOND_PAGE,
-)
+from src.components.kpi import creer_carte_kpi, formater_duree, formater_nombre
 from src.utils.queries import (
-    charger_donnees_dashboard,
+    Filtres,
+    calculer_kpi,
+    charger_operations,
     charger_options_filtres,
 )
 
+# Entrées communes à tous les callbacks : les quatre filtres.
+ENTREES_FILTRES = [
+    Input("filtre-periode", "value"),
+    Input("filtre-cross", "value"),
+    Input("filtre-famille", "value"),
+    Input("filtre-perimetre", "value"),
+]
 
-# Charge les valeurs proposées dans les filtres.
-zones, evenements = charger_options_filtres()
+
+def lire_filtres(periode: list[int], cross: str, famille: str, perimetre: str) -> Filtres:
+    """Convertit les valeurs des composants Dash en objet `Filtres`."""
+    annee_debut, annee_fin = periode
+    return Filtres(int(annee_debut), int(annee_fin), cross, famille, perimetre)
 
 
-# Construit la page principale du tableau de bord.
-def creer_page_dashboard():
-    return html.Div(
-        style={
-            "fontFamily": "Arial, sans-serif",
-            "backgroundColor": FOND_PAGE,
-            "color": COULEUR_TEXTE,
-            "minHeight": "100vh",
-            "padding": "32px 5%",
-        },
+def creer_entete() -> html.Header:
+    """Construit l'en-tête de la page."""
+    return html.Header(
+        className="entete",
         children=[
-            html.Header(
-                style={
-                    "borderBottom": f"3px solid {COULEUR_ORANGE}",
-                    "paddingBottom": "22px",
-                    "marginBottom": "28px",
-                    "backgroundColor": FOND_PAGE,
-                },
+            html.Img(src="/assets/logo.svg", alt="", className="entete-logo"),
+            html.Div(
+                className="entete-textes",
                 children=[
-                    html.H1(
-                        "SECMAR",
-                        style={
-                            "fontSize": "32px",
-                            "fontWeight": "800",
-                            "color": COULEUR_ORANGE,
-                            "margin": "0",
-                        },
-                    ),
+                    html.H1("SECMAR"),
                     html.P(
-                        "Observatoire des opérations de secours en mer",
-                        style={"color": "#64748B"},
+                        "Observatoire des opérations de secours en mer "
+                        "coordonnées par les CROSS"
                     ),
                 ],
             ),
+        ],
+    )
 
-            creer_panneau_filtres(zones, evenements),
 
-            html.Section(
-                style={
-                    "display": "grid",
-                    "gridTemplateColumns": "repeat(5, minmax(0, 1fr))",
-                    "gap": "16px",
-                    "marginBottom": "28px",
-                },
-                children=[
-                    creer_carte_kpi(
-                        "Opérations recensées",
-                        "kpi-operations",
-                        "Nombre d'opérations distinctes",
-                        COULEUR_ORANGE,
-                    ),
-                    creer_carte_kpi(
-                        "Personnes secourues",
-                        "kpi-personnes",
-                        "Total déclaré dans les statistiques",
-                        COULEUR_TURQUOISE,
-                    ),
-                    creer_carte_kpi(
-                        "Personnes blessées",
-                        "kpi-blesses",
-                        "Total déclaré dans les statistiques",
-                        COULEUR_ORANGE,
-                    ),
-                    creer_carte_kpi(
-                        "Personnes décédées",
-                        "kpi-deces",
-                        "Total déclaré dans les statistiques",
-                        "#6B3FA0",
-                    ),
-                    creer_carte_kpi(
-                        "Durée médiane",
-                        "kpi-duree",
-                        "Opérations de 0 à 24 heures",
-                        COULEUR_ORANGE,
-                    ),
-                ],
-            ),
+def creer_section_kpi() -> html.Section:
+    """Construit la rangée des cinq indicateurs clés."""
+    return html.Section(
+        className="grille-kpi",
+        children=[
+            creer_carte_kpi("Opérations", "kpi-operations",
+                            "Opérations coordonnées sur la sélection", "principal"),
+            creer_carte_kpi("Personnes secourues", "kpi-secourues",
+                            "Total déclaré", "secondaire"),
+            creer_carte_kpi("Personnes blessées", "kpi-blessees",
+                            "Total déclaré", "alerte"),
+            creer_carte_kpi("Personnes décédées", "kpi-decedees",
+                            "Total déclaré", "grave"),
+            creer_carte_kpi("Durée médiane", "kpi-duree",
+                            "Opérations de moins de 72 h", "secondaire"),
+        ],
+    )
 
+
+def creer_page_dashboard() -> html.Div:
+    """Construit la page complète (appelée une fois au lancement)."""
+    cross, familles = charger_options_filtres()
+    # Préchargement de la vue par défaut : le premier affichage est immédiat.
+    charger_operations(Filtres())
+    return html.Div(
+        className="page",
+        children=[
+            creer_entete(),
+            creer_panneau_filtres(cross, familles),
+            creer_section_kpi(),
             creer_section_carte(),
         ],
     )
 
 
-# Met à jour les indicateurs et la carte selon les filtres.
-def enregistrer_callbacks(app):
+def enregistrer_callbacks(app: Dash) -> None:
+    """Déclare les interactions entre les filtres, les KPI et la carte."""
+
     @app.callback(
         Output("kpi-operations", "children"),
-        Output("kpi-personnes", "children"),
-        Output("kpi-blesses", "children"),
-        Output("kpi-deces", "children"),
+        Output("kpi-secourues", "children"),
+        Output("kpi-blessees", "children"),
+        Output("kpi-decedees", "children"),
         Output("kpi-duree", "children"),
         Output("graphique-carte", "figure"),
-        Input("filtre-periode", "value"),
-        Input("filtre-zone", "value"),
-        Input("filtre-evenement", "value"),
+        Output("note-carte", "children"),
+        *ENTREES_FILTRES,
     )
-    def mettre_a_jour_dashboard(periode, zone, evenement):
-        annee_debut, annee_fin = periode
-
-        donnees = charger_donnees_dashboard(
-            annee_debut=annee_debut,
-            annee_fin=annee_fin,
-            zone=zone,
-            evenement=evenement,
-        )
-
-        operations = donnees["operations"]
-
-        nombre_operations = operations["operation_id"].nunique()
-
-        personnes = operations[
-            "nombre_personnes_secourues"
-        ].sum(min_count=1)
-
-        blesses = operations[
-            "nombre_personnes_blessees"
-        ].sum(min_count=1)
-
-        deces = operations[
-            "nombre_personnes_decedees"
-        ].sum(min_count=1)
-
-        durees = pd.to_numeric(
-            operations["duree_heures"],
-            errors="coerce",
-        )
-
-        durees_valides = durees[durees.between(0, 24)]
-        duree_mediane = durees_valides.median()
-
-        if pd.notna(duree_mediane):
-            total_minutes = round(duree_mediane * 60)
-            heures, minutes = divmod(total_minutes, 60)
-            texte_duree = f"{heures} h {minutes:02d} min"
-        else:
-            texte_duree = "N/D"
-
-        def formater_total(valeur):
-            if pd.isna(valeur):
-                return "N/D"
-            return f"{valeur:,.0f}".replace(",", " ")
-
-        carte = operations.dropna(
-            subset=["latitude", "longitude"]
-        ).copy()
-
-        carte = carte[
-            carte["latitude"].between(-90, 90)
-            & carte["longitude"].between(-180, 180)
-        ]
-
-        figure_carte = creer_carte(carte)
-
+    def mettre_a_jour_vue_generale(periode, cross, famille, perimetre):  # type: ignore[no-untyped-def]
+        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        kpi = calculer_kpi(donnees)
         return (
-            formater_total(nombre_operations),
-            formater_total(personnes),
-            formater_total(blesses),
-            formater_total(deces),
-            texte_duree,
-            figure_carte,
+            formater_nombre(kpi["operations"]),
+            formater_nombre(kpi["secourues"]),
+            formater_nombre(kpi["blessees"]),
+            formater_nombre(kpi["decedees"]),
+            formater_duree(kpi["duree_mediane"]),
+            creer_carte(donnees),
+            decrire_positions(donnees),
         )
