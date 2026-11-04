@@ -1,14 +1,11 @@
+
 """Composants de la carte géographique des opérations."""
 
 import plotly.express as px
 from dash import dcc, html
 
 from config import MAX_POINTS_CARTE
-from src.components.theme import (
-    COULEUR_ORANGE,
-    COULEUR_TURQUOISE,
-    STYLE_CARTE,
-)
+from src.components.theme import STYLE_CARTE
 
 
 # Couleurs attribuées aux catégories originales des événements.
@@ -23,9 +20,11 @@ COULEURS_EVENEMENTS = {
 }
 
 
-# Crée une carte de densité ou une carte des opérations individuelles.
-def creer_carte(donnees, mode="densite"):
-    donnees = donnees.dropna(subset=["latitude", "longitude"]).copy()
+# Crée la carte des opérations individuelles.
+def creer_carte(donnees):
+    donnees = donnees.dropna(
+        subset=["latitude", "longitude"]
+    ).copy()
 
     # Écarte les coordonnées impossibles avant de tracer la carte.
     donnees = donnees[
@@ -33,52 +32,38 @@ def creer_carte(donnees, mode="densite"):
         & donnees["longitude"].between(-180, 180)
     ]
 
-    if mode == "operations":
-        # Limite le nombre de points pour garder une carte fluide.
-        if len(donnees) > MAX_POINTS_CARTE:
-            donnees = donnees.sample(
-                n=MAX_POINTS_CARTE,
-                random_state=42,
-            )
-
-        figure = px.scatter_map(
-            donnees,
-            lat="latitude",
-            lon="longitude",
-            color="categorie_evenement",
-            color_discrete_map=COULEURS_EVENEMENTS,
-            hover_data={
-                "operation_id": True,
-                "cross": True,
-                "latitude": False,
-                "longitude": False,
-            },
-            map_style="carto-positron",
-            zoom=3,
-            center={"lat": 46.5, "lon": 2.5},
-            labels={
-                "categorie_evenement": "Type d'événement",
-                "operation_id": "N° d'opération",
-                "cross": "CROSS",
-            },
+    # Limite le nombre de points pour garder une carte fluide.
+    if len(donnees) > MAX_POINTS_CARTE:
+        donnees = donnees.sample(
+            n=MAX_POINTS_CARTE,
+            random_state=42,
         )
-        figure.update_traces(marker={"size": 8, "opacity": 0.75})
 
-    else:
-        figure = px.density_map(
-            donnees,
-            lat="latitude",
-            lon="longitude",
-            radius=8,
-            map_style="carto-positron",
-            zoom=3,
-            center={"lat": 46.5, "lon": 2.5},
-            color_continuous_scale=[
-                "#E8F6F5",
-                COULEUR_TURQUOISE,
-                COULEUR_ORANGE,
-            ],
-        )
+    figure = px.scatter_map(
+        donnees,
+        lat="latitude",
+        lon="longitude",
+        color="categorie_evenement",
+        color_discrete_map=COULEURS_EVENEMENTS,
+        hover_data={
+            "operation_id": True,
+            "cross": True,
+            "latitude": False,
+            "longitude": False,
+        },
+        map_style="carto-positron",
+        zoom=3,
+        center={"lat": 46.5, "lon": 2.5},
+        labels={
+            "categorie_evenement": "Type d'événement",
+            "operation_id": "N° d'opération",
+            "cross": "CROSS",
+        },
+    )
+
+    figure.update_traces(
+        marker={"size": 8, "opacity": 0.75}
+    )
 
     figure.update_layout(
         height=480,
@@ -89,7 +74,7 @@ def creer_carte(donnees, mode="densite"):
     return figure
 
 
-# Construit la section de carte et son sélecteur de mode.
+# Construit la section contenant la carte.
 def creer_section_carte():
     return html.Section(
         style={**STYLE_CARTE, "marginBottom": "24px"},
@@ -99,30 +84,8 @@ def creer_section_carte():
                 style={"fontSize": "19px", "marginTop": "0"},
             ),
             html.P(
-                "Explore les concentrations ou les opérations individuelles.",
+                "Chaque point représente une opération de secours.",
                 style={"color": "#64748B", "fontSize": "14px"},
-            ),
-            dcc.RadioItems(
-                id="mode-carte",
-                options=[
-                    {
-                        "label": "Zones de concentration",
-                        "value": "densite",
-                    },
-                    {
-                        "label": "Opérations individuelles",
-                        "value": "operations",
-                    },
-                ],
-                value="densite",
-                inline=True,
-                labelStyle={
-                    "display": "inline-block",
-                    "marginRight": "20px",
-                    "marginBottom": "12px",
-                    "cursor": "pointer",
-                },
-                inputStyle={"marginRight": "6px"},
             ),
             dcc.Graph(
                 id="graphique-carte",
