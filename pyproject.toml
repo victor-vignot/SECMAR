@@ -7,3 +7,23 @@ dependencies = [
     "pandas>=3.1.0",
     "plotly>=7.1.0",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pylint>=4.1.3",
+    "pytest>=9.2.0",
+    "radon>=6.0.1",
+    "ruff>=0.17.3",
+]
+
+[tool.uv]
+# Les outils de developpement ne sont pas installes par un simple `uv sync`
+# (machine d'evaluation) : on les active avec `--group dev`.
+default-groups = []
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+# Le plugin de test de Dash (non utilise ici) emet un avertissement pytest.
+addopts = "-p no:dash"
