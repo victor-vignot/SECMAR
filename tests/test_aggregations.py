@@ -4,7 +4,9 @@ import pandas as pd
 import pytest
 
 from src.utils.aggregations import (
+    indicateurs_par_groupe,
     profil_croise,
+    taux_par_cases,
 )
 
 
@@ -26,3 +28,21 @@ def test_profil_croise_somme_a_cent(operations: pd.DataFrame) -> None:
     assert tableau.pourcentages["faible"].sum() == pytest.approx(100)
     assert tableau.pourcentages.loc["Avarie", "faible"] == pytest.approx(75)
     assert tableau.totaux["fort"] == 10
+
+
+def test_taux_par_cases(operations: pd.DataFrame) -> None:
+    """Part des opérations avec blessés dans chaque case."""
+    taux, effectifs = taux_par_cases(
+        operations, "famille", "vent", operations["blesses"].gt(0), effectif_min=1
+    )
+    assert taux.loc["Avarie", "fort"] == pytest.approx(100)
+    assert effectifs.loc["Avarie", "faible"] == 30
+
+
+def test_indicateurs_par_groupe(operations: pd.DataFrame) -> None:
+    """Totaux, moyennes et taux pour 100 opérations."""
+    resultat = indicateurs_par_groupe(operations, "vent", ["blesses"], pour=100)
+    fort = resultat.set_index("vent").loc["fort"]
+    assert fort["operations"] == 10
+    assert fort["total_blesses"] == 20
+    assert fort["taux_blesses"] == pytest.approx(200)

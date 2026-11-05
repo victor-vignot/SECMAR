@@ -42,3 +42,40 @@ def profil_croise(
     pourcentages = effectifs.div(totaux.where(totaux > 0), axis=1) * 100
     pourcentages = pourcentages.loc[:, totaux >= effectif_min]
     return TableauCroise(pourcentages, effectifs[pourcentages.columns], totaux)
+
+
+def taux_par_cases(
+    donnees: pd.DataFrame,
+    ligne: str,
+    colonne: str,
+    condition: pd.Series,
+    effectif_min: int = EFFECTIF_MINIMAL,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Part (en %) des opérations vérifiant `condition`, par case ligne × colonne.
+
+    Retourne (taux, effectifs) ; les cases sous `effectif_min` sont masquées.
+    """
+    valides = donnees.dropna(subset=[ligne, colonne]).assign(
+        _condition=condition.astype(float)
+    )
+    groupes = valides.groupby([ligne, colonne], observed=False)["_condition"]
+    effectifs = groupes.size().unstack(colonne, fill_value=0)
+    taux = (groupes.mean() * 100).unstack(colonne)
+    return taux.where(effectifs >= effectif_min), effectifs
+
+
+def indicateurs_par_groupe(
+    donnees: pd.DataFrame,
+    groupe: str,
+    colonnes: list[str],
+    pour: int = 1,
+) -> pd.DataFrame:
+    """Total et moyenne (pour `pour` opérations) de chaque colonne, par groupe."""
+    agregats = donnees.groupby(groupe, observed=True).agg(
+        operations=(colonnes[0], "size"),
+        **{f"total_{c}": (c, "sum") for c in colonnes},
+        **{f"moyenne_{c}": (c, "mean") for c in colonnes},
+    )
+    for colonne in colonnes:
+        agregats[f"taux_{colonne}"] = agregats[f"moyenne_{colonne}"] * pour
+    return agregats.reset_index()
