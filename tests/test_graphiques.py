@@ -7,9 +7,11 @@ from src.components.graphiques import (
     LARGEUR_SOUS_TITRE,
     TextesFigure,
     appliquer_charte,
+    boites_quartiles,
     carte_chaleur,
     figure_vide,
     formater_effectif,
+    histogramme,
 )
 
 TEXTES = TextesFigure("Titre", "Sous-titre", "Axe x", "Axe y")
@@ -42,3 +44,20 @@ def test_carte_chaleur_ecrit_les_pourcentages() -> None:
     figure = carte_chaleur(valeurs, effectifs, TEXTES)
     assert list(figure.data[0].text.ravel()) == ["60 %", "40 %"]
     assert carte_chaleur(valeurs.iloc[0:0], effectifs, TEXTES).layout.annotations
+
+
+def test_boites_quartiles_utilise_les_quartiles() -> None:
+    """La boîte est construite à partir des quartiles fournis."""
+    resume = pd.DataFrame({
+        "groupe": ["a"], "operations": [100], "p10": [1.0], "q1": [2.0],
+        "mediane": [3.0], "q3": [4.0], "p90": [5.0],
+    })
+    boite = boites_quartiles(resume, "groupe", TEXTES).data[0]
+    assert (boite.q1[0], boite.median[0], boite.q3[0]) == (2.0, 3.0, 4.0)
+
+
+def test_histogramme_classes_de_largeur_fixe() -> None:
+    """Les classes ont la largeur et les bornes demandées."""
+    figure = histogramme(pd.Series([0.2, 1.4, 2.8]), TEXTES, (0, 3, 0.5))
+    assert figure.data[0].xbins.size == 0.5
+    assert list(figure.layout.xaxis.range) == [0, 3]

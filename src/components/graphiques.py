@@ -12,7 +12,10 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from src.components.theme import (
+    COULEUR_FOND,
     COULEUR_SECONDAIRE,
+    COULEUR_SERIE,
+    COULEUR_SERIE_CLAIRE,
     ECHELLE_CHALEUR,
     LAYOUT_GRAPHIQUE,
 )
@@ -93,4 +96,73 @@ def carte_chaleur(
     )
     figure.update_xaxes(title=textes.libelle_x, side="bottom")
     figure.update_yaxes(title=textes.libelle_y, autorange="reversed")
+    return appliquer_charte(figure, textes)
+
+
+def boites_quartiles(
+    resume: pd.DataFrame,
+    groupe: str,
+    textes: TextesFigure,
+    horizontal: bool = False,
+) -> go.Figure:
+    """Boîtes à moustaches à partir de quartiles déjà calculés.
+
+    Boîte = 1er à 3e quartile, trait = médiane, moustaches = 10e et 90e
+    centiles. `textes.libelle_x` nomme les groupes, `textes.libelle_y` la valeur.
+    """
+    if resume.empty:
+        return figure_vide(textes.titre)
+    groupes = [str(g) for g in resume[groupe]]
+    stats = {
+        "q1": resume["q1"], "median": resume["mediane"], "q3": resume["q3"],
+        "lowerfence": resume["p10"], "upperfence": resume["p90"],
+    }
+    position = {"y": groupes} if horizontal else {"x": groupes}
+    figure = go.Figure(
+        go.Box(
+            **position, **stats,
+            orientation="h" if horizontal else "v",
+            marker_color=COULEUR_SERIE,
+            fillcolor=COULEUR_SERIE_CLAIRE,
+            customdata=resume["operations"],
+            hovertemplate=(
+                "%{" + ("y" if horizontal else "x") + "}<br>"
+                "Opérations : %{customdata:,.0f}<extra></extra>"
+            ),
+            name="",
+        )
+    )
+    axe_valeur = {"title": textes.libelle_y, "rangemode": "tozero"}
+    if horizontal:
+        figure.update_xaxes(**axe_valeur)
+        figure.update_yaxes(title=textes.libelle_x, autorange="reversed")
+    else:
+        figure.update_yaxes(**axe_valeur)
+        figure.update_xaxes(title=textes.libelle_x)
+    figure.update_layout(showlegend=False)
+    return appliquer_charte(figure, textes)
+
+
+def histogramme(
+    valeurs: pd.Series,
+    textes: TextesFigure,
+    bornes: tuple[float, float, float],
+) -> go.Figure:
+    """Histogramme d'une variable continue ; `bornes` = (début, fin, largeur de classe)."""
+    if valeurs.dropna().empty:
+        return figure_vide(textes.titre)
+    debut, fin, largeur_classe = bornes
+    figure = go.Figure(
+        go.Histogram(
+            x=valeurs,
+            xbins={"start": debut, "end": fin, "size": largeur_classe},
+            marker={"color": COULEUR_SERIE, "line": {"color": COULEUR_FOND, "width": 1}},
+            hovertemplate=(
+                f"{textes.libelle_x} : %{{x}}<br>Opérations : %{{y:,.0f}}<extra></extra>"
+            ),
+        )
+    )
+    figure.update_xaxes(title=textes.libelle_x, range=[debut, fin])
+    figure.update_yaxes(title=textes.libelle_y or "Nombre d'opérations")
+    figure.update_layout(bargap=0.02)
     return appliquer_charte(figure, textes)
