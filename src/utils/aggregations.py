@@ -79,3 +79,42 @@ def indicateurs_par_groupe(
     for colonne in colonnes:
         agregats[f"taux_{colonne}"] = agregats[f"moyenne_{colonne}"] * pour
     return agregats.reset_index()
+
+
+def quartiles_par_groupe(
+    donnees: pd.DataFrame,
+    groupe: str,
+    valeur: str,
+    effectif_min: int = EFFECTIF_MINIMAL,
+) -> pd.DataFrame:
+    """Statistiques de boîte à moustaches calculées à l'avance.
+
+    Moustaches = 10e et 90e centiles : calculer les quartiles ici évite
+    d'envoyer des centaines de milliers de points au navigateur.
+    """
+    valides = donnees.dropna(subset=[groupe, valeur])
+    groupes = valides.groupby(groupe, observed=True)[valeur]
+    resume = pd.DataFrame({
+        "operations": groupes.size(),
+        "p10": groupes.quantile(0.10),
+        "q1": groupes.quantile(0.25),
+        "mediane": groupes.median(),
+        "q3": groupes.quantile(0.75),
+        "p90": groupes.quantile(0.90),
+    })
+    return resume[resume["operations"] >= effectif_min].reset_index()
+
+
+def comptage_par(donnees: pd.DataFrame, colonnes: list[str]) -> pd.DataFrame:
+    """Nombre d'opérations pour chaque combinaison des colonnes données."""
+    return (
+        donnees.dropna(subset=colonnes)
+        .groupby(colonnes, observed=True)
+        .size()
+        .reset_index(name="operations")
+    )
+
+
+def principales_modalites(donnees: pd.DataFrame, colonne: str, nombre: int) -> list[str]:
+    """Les `nombre` valeurs les plus fréquentes d'une colonne."""
+    return donnees[colonne].value_counts().head(nombre).index.tolist()

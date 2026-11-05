@@ -4,8 +4,11 @@ import pandas as pd
 import pytest
 
 from src.utils.aggregations import (
+    comptage_par,
     indicateurs_par_groupe,
+    principales_modalites,
     profil_croise,
+    quartiles_par_groupe,
     taux_par_cases,
 )
 
@@ -46,3 +49,17 @@ def test_indicateurs_par_groupe(operations: pd.DataFrame) -> None:
     assert fort["operations"] == 10
     assert fort["total_blesses"] == 20
     assert fort["taux_blesses"] == pytest.approx(200)
+
+
+def test_quartiles(operations: pd.DataFrame) -> None:
+    """Médiane correcte ; groupe sous l'effectif minimal retiré."""
+    resume = quartiles_par_groupe(operations, "vent", "duree", effectif_min=30)
+    assert resume["vent"].tolist() == ["faible"]
+    assert resume.loc[0, "mediane"] == pytest.approx(20.5)
+
+
+def test_comptage_et_modalites(operations: pd.DataFrame) -> None:
+    """Comptage par combinaison et valeurs les plus fréquentes."""
+    comptage = comptage_par(operations, ["vent", "famille"])
+    assert comptage["operations"].sum() == 50
+    assert principales_modalites(operations, "famille", 1) == ["Avarie"]
