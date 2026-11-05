@@ -1,9 +1,21 @@
 """Point d'entrée de l'application SECMAR : `uv run python main.py`."""
 
+import logging
+
 from dash import Dash
 
 from config import DB_ARCHIVE_PATH, DB_PATH
 from src.utils.database import base_est_prete, restaurer_archive
+
+
+def configurer_console() -> None:
+    """Garde une console lisible au lancement.
+
+    Le serveur de développement (Werkzeug) affiche un avertissement et une
+    ligne par requête : on ne garde que ses erreurs. L'adresse du tableau de
+    bord reste affichée par Dash.
+    """
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 
 def preparer_base() -> None:
@@ -47,5 +59,6 @@ def creer_application() -> Dash:
 
 
 if __name__ == "__main__":
+    configurer_console()
     preparer_base()
     creer_application().run(debug=False)
