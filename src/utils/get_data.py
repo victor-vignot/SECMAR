@@ -6,8 +6,11 @@ Les fichiers sont enregistrés tels quels dans `data/raw/`.
 Lancement : `uv run python -m src.utils.get_data`
 """
 
+import ssl
 from pathlib import Path
 from urllib.request import Request, urlopen
+
+import certifi
 
 from config import CSV_PATHS, RAW_DATA_DIR, TERRES_PATH
 
@@ -28,11 +31,25 @@ URLS = {
 DESTINATIONS = {**CSV_PATHS, "terres": TERRES_PATH}
 
 
+def creer_contexte_ssl() -> ssl.SSLContext:
+    """Contexte HTTPS qui vérifie les certificats avec la liste de `certifi`.
+
+    Le Python installé depuis python.org sur Mac n'a pas de certificats
+    racine par défaut : sans cette liste, les téléchargements échouent
+    (CERTIFICATE_VERIFY_FAILED).
+    """
+    return ssl.create_default_context(cafile=certifi.where())
+
+
 def download_file(url: str, destination: Path) -> None:
     """Télécharge une ressource sans transformer son contenu."""
     request = Request(url, headers={"User-Agent": "SECMAR-course-project"})
 
-    with urlopen(request, timeout=120) as response, destination.open("wb") as output:
+    contexte = creer_contexte_ssl()
+    with (
+        urlopen(request, timeout=120, context=contexte) as response,
+        destination.open("wb") as output,
+    ):
         while chunk := response.read(1024 * 1024):
             output.write(chunk)
 

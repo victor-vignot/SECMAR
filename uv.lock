@@ -964,6 +964,7 @@ version = "0.1.0"
 source = { virtual = "." }
 default-groups = []
 dependencies = [
+    { name = "certifi" },
     { name = "dash" },
     { name = "pandas" },
     { name = "plotly" },
@@ -981,6 +982,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "certifi", specifier = ">=2026.10.23" },
     { name = "dash", specifier = ">=4.4.1" },
     { name = "pandas", specifier = ">=3.1.0" },
     { name = "plotly", specifier = ">=7.1.0" },
