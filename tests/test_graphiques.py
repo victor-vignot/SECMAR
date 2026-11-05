@@ -7,8 +7,11 @@ from src.components.graphiques import (
     LARGEUR_SOUS_TITRE,
     TextesFigure,
     appliquer_charte,
+    barres_groupees,
+    barres_horizontales,
     boites_quartiles,
     carte_chaleur,
+    courbes,
     figure_vide,
     formater_effectif,
     histogramme,
@@ -61,3 +64,32 @@ def test_histogramme_classes_de_largeur_fixe() -> None:
     figure = histogramme(pd.Series([0.2, 1.4, 2.8]), TEXTES, (0, 3, 0.5))
     assert figure.data[0].xbins.size == 0.5
     assert list(figure.layout.xaxis.range) == [0, 3]
+
+
+def test_courbes_une_trace_par_serie() -> None:
+    """Une courbe par valeur de la colonne série."""
+    donnees = pd.DataFrame({"x": [1, 2, 1, 2], "y": [5, 6, 7, 8], "s": ["a", "a", "b", "b"]})
+    figure = courbes(donnees, ("x", "y", "s"), {"a": "#000000"}, TEXTES)
+    assert [trace.name for trace in figure.data] == ["a", "b"]
+
+
+def test_barres_horizontales_triees_avec_marge() -> None:
+    """Barres triées par valeur, axe élargi pour que les étiquettes restent visibles."""
+    donnees = pd.DataFrame({"cat": ["a", "b"], "val": [10.0, 2.0]})
+    figure = barres_horizontales(donnees, ("cat", "val"), TEXTES)
+    assert list(figure.data[0].y) == ["b", "a"]
+    assert figure.layout.xaxis.range[1] > 10
+
+
+def test_barres_horizontales_ordre_conserve() -> None:
+    """Avec trier=False, la première ligne du tableau reste en haut."""
+    donnees = pd.DataFrame({"cat": ["près", "loin"], "val": [1.0, 9.0]})
+    figure = barres_horizontales(donnees, ("cat", "val"), TEXTES, trier=False)
+    assert list(figure.data[0].y) == ["loin", "près"]
+
+
+def test_barres_groupees_une_serie_par_ligne() -> None:
+    """Une série de barres par ligne du tableau."""
+    valeurs = pd.DataFrame({"Zone A": [5.0, 1.0]}, index=["Blessés", "Décès"])
+    figure = barres_groupees(valeurs, TEXTES, {})
+    assert [trace.name for trace in figure.data] == ["Blessés", "Décès"]

@@ -23,6 +23,9 @@ from src.components.theme import (
 # Au-delà de cette longueur, le sous-titre passe sur deux lignes (sinon il est coupé).
 LARGEUR_SOUS_TITRE = 85
 
+# Marge laissée après la plus grande valeur pour que son étiquette reste visible.
+MARGE_ETIQUETTES = 1.18
+
 
 @dataclass(frozen=True)
 class TextesFigure:
@@ -165,4 +168,107 @@ def histogramme(
     figure.update_xaxes(title=textes.libelle_x, range=[debut, fin])
     figure.update_yaxes(title=textes.libelle_y or "Nombre d'opérations")
     figure.update_layout(bargap=0.02)
+    return appliquer_charte(figure, textes)
+
+
+def courbes(
+    donnees: pd.DataFrame,
+    colonnes: tuple[str, str, str],
+    couleurs: dict[str, str],
+    textes: TextesFigure,
+    etiquettes_x: dict[int, str] | None = None,
+) -> go.Figure:
+    """Une courbe par série ; `colonnes` = (abscisse, ordonnée, série)."""
+    if donnees.empty:
+        return figure_vide(textes.titre)
+    x, y, serie = colonnes
+    figure = go.Figure()
+    for nom, groupe in donnees.groupby(serie, observed=True, sort=False):
+        figure.add_trace(
+            go.Scatter(
+                x=groupe[x], y=groupe[y], name=str(nom), mode="lines+markers",
+                line={"color": couleurs.get(str(nom)), "width": 2},
+                marker={"size": 5},
+                hovertemplate=f"{nom}<br>%{{x}} : %{{y:,.0f}}<extra></extra>",
+            )
+        )
+    if etiquettes_x:
+        figure.update_xaxes(tickvals=list(etiquettes_x), ticktext=list(etiquettes_x.values()))
+    figure.update_xaxes(title=textes.libelle_x)
+    figure.update_yaxes(title=textes.libelle_y, rangemode="tozero")
+    return appliquer_charte(figure, textes)
+
+
+def barres_horizontales(
+    donnees: pd.DataFrame,
+    colonnes: tuple[str, str],
+    textes: TextesFigure,
+    format_valeur: str = ".1f",
+    couleurs: dict[str, str] | None = None,
+    *,
+    trier: bool = True,
+) -> go.Figure:
+    """Barres horizontales ; `colonnes` = (catégorie, valeur).
+
+    Triées par valeur, sauf si `trier=False` (ordre du tableau conservé, de
+    haut en bas). La valeur est écrite au bout de chaque barre ;
+    `textes.libelle_x` la nomme.
+    """
+    categorie, valeur = colonnes
+    valides = donnees.dropna(subset=[valeur])
+    if valides.empty:
+        return figure_vide(textes.titre)
+    # Plotly trace la première ligne en bas : on inverse l'ordre si non trié.
+    valides = valides.sort_values(valeur) if trier else valides.iloc[::-1]
+    noms = [str(n) for n in valides[categorie]]
+    palette = couleurs or {}
+    avec_effectifs = "operations" in valides
+    figure = go.Figure(
+        go.Bar(
+            x=valides[valeur], y=noms, orientation="h",
+            marker_color=[palette.get(n, COULEUR_SERIE) for n in noms],
+            text=valides[valeur], texttemplate=f"%{{text:{format_valeur}}}",
+            textposition="outside", cliponaxis=False,
+            customdata=valides.get("operations"),
+            hovertemplate=(
+                f"%{{y}}<br>{textes.libelle_x} : %{{x:{format_valeur}}}"
+                + ("<br>Opérations : %{customdata:,.0f}" if avec_effectifs else "")
+                + "<extra></extra>"
+            ),
+        )
+    )
+    maximum = float(valides[valeur].max())
+    figure.update_xaxes(
+        title=textes.libelle_x, range=[0, maximum * MARGE_ETIQUETTES if maximum > 0 else 1]
+    )
+    figure.update_yaxes(title="")
+    figure.update_layout(showlegend=False)
+    return appliquer_charte(figure, textes)
+
+
+def barres_groupees(
+    valeurs: pd.DataFrame,
+    textes: TextesFigure,
+    couleurs: dict[str, str],
+) -> go.Figure:
+    """Barres côte à côte : une série par ligne de `valeurs`, un groupe par colonne."""
+    if valeurs.empty or valeurs.isna().all().all():
+        return figure_vide(textes.titre)
+    figure = go.Figure()
+    for serie, ligne in valeurs.iterrows():
+        figure.add_trace(
+            go.Bar(
+                x=[str(c) for c in valeurs.columns], y=ligne.to_numpy(dtype=float),
+                name=str(serie), marker_color=couleurs.get(str(serie)),
+                text=ligne.to_numpy(dtype=float), texttemplate="%{text:.1f} %",
+                textposition="outside", cliponaxis=False,
+                hovertemplate=f"{serie}<br>%{{x}} : %{{y:.1f}} %<extra></extra>",
+            )
+        )
+    maximum = float(valeurs.max().max())
+    figure.update_xaxes(title=textes.libelle_x)
+    figure.update_yaxes(
+        title=textes.libelle_y, range=[0, maximum * MARGE_ETIQUETTES if maximum > 0 else 1]
+    )
+    figure.update_layout(barmode="group")
     return appliquer_charte(figure, textes)
