@@ -8,10 +8,12 @@ et applique la charte commune. Les figures de chaque onglet (modules
 import textwrap
 from dataclasses import dataclass
 
+import pandas as pd
 import plotly.graph_objects as go
 
 from src.components.theme import (
     COULEUR_SECONDAIRE,
+    ECHELLE_CHALEUR,
     LAYOUT_GRAPHIQUE,
 )
 
@@ -58,3 +60,37 @@ def figure_vide(titre: str, message: str = "Aucune opération pour ces filtres")
 def formater_effectif(nombre: float) -> str:
     """Formate un effectif avec une espace comme séparateur de milliers."""
     return f"{nombre:,.0f}".replace(",", " ")
+
+
+def carte_chaleur(
+    valeurs: pd.DataFrame,
+    effectifs: pd.DataFrame,
+    textes: TextesFigure,
+    libelle_valeur: str = "% des opérations",
+) -> go.Figure:
+    """Carte de chaleur avec la valeur (en %) écrite dans chaque case."""
+    if valeurs.empty or valeurs.isna().all().all():
+        return figure_vide(textes.titre)
+    texte = valeurs.map(lambda v: "" if pd.isna(v) else f"{v:.0f} %")
+    figure = go.Figure(
+        go.Heatmap(
+            z=valeurs.to_numpy(dtype=float),
+            x=[str(c) for c in valeurs.columns],
+            y=[str(i) for i in valeurs.index],
+            text=texte.to_numpy(),
+            texttemplate="%{text}",
+            customdata=effectifs.reindex_like(valeurs).to_numpy(dtype=float),
+            colorscale=ECHELLE_CHALEUR,
+            colorbar={"title": {"text": "%"}, "thickness": 12},
+            hovertemplate=(
+                f"{textes.libelle_x} : %{{x}}<br>{textes.libelle_y} : %{{y}}<br>"
+                f"{libelle_valeur} : %{{z:.1f}} %<br>"
+                "Opérations : %{customdata:,.0f}<extra></extra>"
+            ),
+            xgap=2,
+            ygap=2,
+        )
+    )
+    figure.update_xaxes(title=textes.libelle_x, side="bottom")
+    figure.update_yaxes(title=textes.libelle_y, autorange="reversed")
+    return appliquer_charte(figure, textes)
