@@ -87,6 +87,16 @@ CLASSES_MER = {
     "5+ très forte": (5, 9),
 }
 
+# Noms des mois : abrégés pour les axes, complets pour les messages.
+NOMS_MOIS = {
+    1: "janv.", 2: "févr.", 3: "mars", 4: "avr.", 5: "mai", 6: "juin",
+    7: "juil.", 8: "août", 9: "sept.", 10: "oct.", 11: "nov.", 12: "déc.",
+}
+NOMS_MOIS_LONGS = {
+    1: "janvier", 2: "février", 3: "mars", 4: "avril", 5: "mai", 6: "juin",
+    7: "juillet", 8: "août", 9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre",
+}
+
 # Saisons météorologiques de l'hémisphère nord.
 SAISONS = {
     "Hiver": (12, 1, 2),

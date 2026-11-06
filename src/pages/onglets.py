@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 import plotly.graph_objects as go
 
+from src.components import figures_quand as quand
 from src.utils.messages import FonctionMessages
 
 FonctionFigure = Callable[[pd.DataFrame], go.Figure]
@@ -41,6 +42,9 @@ ONGLETS: list[Onglet] = [
         "quand",
         "Quand ?",
         "À quels moments de l'année chaque type d'événement est-il le plus fréquent ?",
+        graphiques=[
+            Graphique(quand.figure_mois_famille, pleine_largeur=True),
+        ],
     ),
     Onglet(
         "conditions",
