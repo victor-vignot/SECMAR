@@ -10,6 +10,8 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from config import NOMS_MOIS_LONGS
+
 # Tons possibles : information, point de vigilance, conséquence grave.
 TONS_MESSAGES = ("info", "alerte", "grave")
 
@@ -52,3 +54,55 @@ def part_en_pourcent(masque: pd.Series) -> float:
 def victimes_graves(donnees: pd.DataFrame) -> pd.Series:
     """Vrai pour les opérations ayant fait au moins un décès ou un disparu."""
     return (donnees["personnes_decedees"] + donnees["personnes_disparues"]).gt(0)
+
+
+def messages_quand(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Quand ? » : mois de pointe, été, saisonnalité."""
+    if len(donnees) < EFFECTIF_MINIMAL_MESSAGE:
+        return []
+    par_mois = donnees["mois"].value_counts()
+    mois_pic = int(par_mois.idxmax())
+    part_pic = par_mois.max() / len(donnees) * 100
+    messages = [
+        Message(
+            f"{NOMS_MOIS_LONGS[mois_pic].capitalize()}, le mois le plus chargé",
+            f"{formater(part_pic)} % des opérations de la sélection ont lieu en "
+            f"{NOMS_MOIS_LONGS[mois_pic]}, contre 8 % si elles étaient réparties "
+            "également sur l'année.",
+            "alerte",
+        ),
+        Message(
+            "L'été concentre l'activité",
+            f"{formater(part_en_pourcent(donnees['saison'].eq('Été')))} % des opérations "
+            "ont lieu en été (juin à août), contre "
+            f"{formater(part_en_pourcent(donnees['saison'].eq('Hiver')))} % en hiver.",
+        ),
+    ]
+    saisonniere = _famille_la_plus_saisonniere(donnees)
+    if saisonniere is not None:
+        famille, rapport, pic, creux = saisonniere
+        messages.append(
+            Message(
+                f"{famille} : l'activité la plus saisonnière",
+                f"{formater(rapport, 1)} fois plus d'opérations en {NOMS_MOIS_LONGS[pic]} "
+                f"qu'en {NOMS_MOIS_LONGS[creux]}.",
+            )
+        )
+    return messages
+
+
+def _famille_la_plus_saisonniere(
+    donnees: pd.DataFrame,
+) -> tuple[str, float, int, int] | None:
+    """Famille dont l'écart entre mois de pointe et mois creux est le plus fort.
+
+    Seules les familles assez représentées et présentes les 12 mois comptent.
+    """
+    comptes = donnees.groupby(["famille", "mois"], observed=True).size().unstack(fill_value=0)
+    comptes = comptes[(comptes.sum(axis=1) >= EFFECTIF_MINIMAL_MESSAGE) & (comptes.min(axis=1) > 0)]
+    if comptes.empty or comptes.shape[1] < 12:
+        return None
+    rapports = comptes.max(axis=1) / comptes.min(axis=1)
+    famille = rapports.idxmax()
+    ligne = comptes.loc[famille]
+    return str(famille), float(rapports.max()), int(ligne.idxmax()), int(ligne.idxmin())

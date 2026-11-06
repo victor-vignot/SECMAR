@@ -12,7 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from src.components import figures_quand as quand
-from src.utils.messages import FonctionMessages
+from src.utils.messages import FonctionMessages, messages_quand
 
 FonctionFigure = Callable[[pd.DataFrame], go.Figure]
 
@@ -47,6 +47,7 @@ ONGLETS: list[Onglet] = [
             Graphique(quand.figure_saison_famille),
             Graphique(quand.figure_saison_zone),
         ],
+        messages=messages_quand,
     ),
     Onglet(
         "conditions",

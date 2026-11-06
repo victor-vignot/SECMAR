@@ -7,6 +7,7 @@ from src.components.messages import creer_bandeau_messages
 from src.utils.messages import (
     Message,
     formater,
+    messages_quand,
     part_en_pourcent,
     taux_pour_mille,
     victimes_graves,
@@ -46,3 +47,11 @@ def test_bandeau_une_carte_par_message() -> None:
         "message message--info", "message message--grave",
     ]
     assert creer_bandeau_messages([]) is None
+
+
+def test_messages_quand(echantillon: pd.DataFrame) -> None:
+    """Trois messages sur un échantillon complet, aucun sur une sélection trop petite."""
+    messages = messages_quand(echantillon)
+    assert len(messages) == 3
+    assert "mois le plus chargé" in messages[0].titre
+    assert not messages_quand(echantillon.head(10))
