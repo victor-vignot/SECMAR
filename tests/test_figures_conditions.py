@@ -13,6 +13,7 @@ type FabriqueFigure = Callable[[pd.DataFrame], go.Figure]
 FIGURES = [
     figures_conditions.figure_vent_famille,
     figures_conditions.figure_mer_famille,
+    figures_conditions.figure_meteo_gravite,
 ]
 
 

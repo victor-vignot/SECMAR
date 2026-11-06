@@ -3,8 +3,9 @@
 import pandas as pd
 import plotly.graph_objects as go
 
+from config import GRAVITES
 from src.components.graphiques import TextesFigure, carte_chaleur, formater_effectif
-from src.utils.aggregations import profil_croise
+from src.utils.aggregations import profil_croise, taux_par_cases
 
 LIBELLES = {
     "classe_vent": "Force du vent (échelle de Beaufort)",
@@ -38,3 +39,16 @@ def figure_mer_famille(donnees: pd.DataFrame) -> go.Figure:
     return _profil_meteo_famille(
         donnees, "classe_mer", "Quels événements selon l'état de la mer ?"
     )
+
+
+def figure_meteo_gravite(donnees: pd.DataFrame) -> go.Figure:
+    """Part des opérations avec victimes, pour chaque combinaison vent × mer."""
+    avec_victimes = donnees["gravite"].ne(GRAVITES[0])
+    taux, effectifs = taux_par_cases(donnees, "classe_mer", "classe_vent", avec_victimes)
+    textes = TextesFigure(
+        "Part des opérations avec blessés, décès ou disparus selon vent et mer",
+        "Cases de moins de 30 opérations masquées",
+        LIBELLES["classe_vent"],
+        LIBELLES["classe_mer"],
+    )
+    return carte_chaleur(taux, effectifs, textes, libelle_valeur="Opérations avec victimes")

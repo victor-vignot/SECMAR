@@ -66,6 +66,10 @@ ONGLETS: list[Onglet] = [
         graphiques=[
             Graphique(conditions.figure_vent_famille, note=NOTE_FAMILLES),
             Graphique(conditions.figure_mer_famille, note=NOTE_OBSERVATION),
+            Graphique(
+                conditions.figure_meteo_gravite, pleine_largeur=True,
+                note="Vent et mer ne sont renseignés que pour environ 70 % des opérations.",
+            ),
         ],
     ),
     Onglet(
