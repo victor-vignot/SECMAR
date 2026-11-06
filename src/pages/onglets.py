@@ -44,6 +44,8 @@ ONGLETS: list[Onglet] = [
         "À quels moments de l'année chaque type d'événement est-il le plus fréquent ?",
         graphiques=[
             Graphique(quand.figure_mois_famille, pleine_largeur=True),
+            Graphique(quand.figure_saison_famille),
+            Graphique(quand.figure_saison_zone),
         ],
     ),
     Onglet(

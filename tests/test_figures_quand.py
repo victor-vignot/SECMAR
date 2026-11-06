@@ -12,6 +12,8 @@ type FabriqueFigure = Callable[[pd.DataFrame], go.Figure]
 
 FIGURES = [
     figures_quand.figure_mois_famille,
+    figures_quand.figure_saison_famille,
+    figures_quand.figure_saison_zone,
 ]
 
 
