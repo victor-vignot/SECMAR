@@ -7,6 +7,7 @@ from src.components.messages import creer_bandeau_messages
 from src.utils.messages import (
     Message,
     formater,
+    messages_conditions,
     messages_quand,
     part_en_pourcent,
     taux_pour_mille,
@@ -55,3 +56,17 @@ def test_messages_quand(echantillon: pd.DataFrame) -> None:
     assert len(messages) == 3
     assert "mois le plus chargé" in messages[0].titre
     assert not messages_quand(echantillon.head(10))
+
+
+def test_messages_conditions_mer_forte() -> None:
+    """La mortalité par mer très forte est comparée à celle par mer calme."""
+    donnees = pd.DataFrame({
+        "classe_mer": ["0-2 calme"] * 200 + ["5+ très forte"] * 200,
+        "classe_vent": ["0-3 faible"] * 400,
+        "famille": ["Médical"] * 400,
+        "personnes_decedees": [0] * 198 + [1] * 2 + [0] * 190 + [1] * 10,
+        "personnes_disparues": [0] * 400,
+    })
+    messages = messages_conditions(donnees)
+    assert messages[0].ton == "grave"
+    assert "× 5,0" in messages[0].titre

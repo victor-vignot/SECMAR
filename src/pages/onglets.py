@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 
 from src.components import figures_conditions as conditions
 from src.components import figures_quand as quand
-from src.utils.messages import FonctionMessages, messages_quand
+from src.utils.messages import FonctionMessages, messages_conditions, messages_quand
 
 FonctionFigure = Callable[[pd.DataFrame], go.Figure]
 
@@ -71,6 +71,7 @@ ONGLETS: list[Onglet] = [
                 note="Vent et mer ne sont renseignés que pour environ 70 % des opérations.",
             ),
         ],
+        messages=messages_conditions,
     ),
     Onglet(
         "consequences",

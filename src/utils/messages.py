@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from config import NOMS_MOIS_LONGS
+from config import CLASSES_MER, CLASSES_VENT, NOMS_MOIS_LONGS
 
 # Tons possibles : information, point de vigilance, conséquence grave.
 TONS_MESSAGES = ("info", "alerte", "grave")
@@ -106,3 +106,51 @@ def _famille_la_plus_saisonniere(
     famille = rapports.idxmax()
     ligne = comptes.loc[famille]
     return str(famille), float(rapports.max()), int(ligne.idxmax()), int(ligne.idxmin())
+
+
+def messages_conditions(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Conditions » : mer forte, vent fort, données notées."""
+    messages: list[Message] = []
+    calme, tres_forte = next(iter(CLASSES_MER)), list(CLASSES_MER)[-1]
+    mer_calme = donnees[donnees["classe_mer"] == calme]
+    mer_forte = donnees[donnees["classe_mer"] == tres_forte]
+    if min(len(mer_calme), len(mer_forte)) >= EFFECTIF_MINIMAL_MESSAGE:
+        taux_forte = taux_pour_mille(victimes_graves(mer_forte))
+        taux_calme = taux_pour_mille(victimes_graves(mer_calme))
+        if 0 < taux_calme < taux_forte:
+            messages.append(
+                Message(
+                    f"Mer très forte : mortalité × {formater(taux_forte / taux_calme, 1)}",
+                    f"Par mer très forte, {formater(taux_forte)} opérations sur 1 000 comptent "
+                    f"un décès ou un disparu, contre {formater(taux_calme)} par mer calme.",
+                    "grave",
+                )
+            )
+    faible, forts = next(iter(CLASSES_VENT)), list(CLASSES_VENT)[2:]
+    vent_faible = donnees[donnees["classe_vent"] == faible]
+    vent_fort = donnees[donnees["classe_vent"].isin(forts)]
+    if donnees["famille"].nunique() > 1 and min(len(vent_faible), len(vent_fort)) >= (
+        EFFECTIF_MINIMAL_MESSAGE
+    ):
+        part_fort = part_en_pourcent(vent_fort["famille"].eq("Accident de navire"))
+        part_faible = part_en_pourcent(vent_faible["famille"].eq("Accident de navire"))
+        if part_fort > part_faible:
+            messages.append(
+                Message(
+                    "Vent fort : plus d'accidents de navire",
+                    f"Par vent de force 6 et plus, les accidents de navire représentent "
+                    f"{formater(part_fort)} % des opérations, contre {formater(part_faible)} % "
+                    "par vent faible.",
+                    "alerte",
+                )
+            )
+    if len(donnees) >= EFFECTIF_MINIMAL_MESSAGE:
+        renseigne = part_en_pourcent(donnees["classe_vent"].notna())
+        messages.append(
+            Message(
+                "Des conditions pas toujours notées",
+                f"La force du vent est renseignée pour {formater(renseigne)} % des opérations "
+                "sélectionnées : les graphiques portent sur celles-ci.",
+            )
+        )
+    return messages
