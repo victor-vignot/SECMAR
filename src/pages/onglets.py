@@ -81,6 +81,8 @@ ONGLETS: list[Onglet] = [
         graphiques=[
             Graphique(consequences.figure_famille_deces),
             Graphique(consequences.figure_famille_blesses),
+            Graphique(consequences.figure_famille_impliques),
+            Graphique(consequences.figure_evacuations),
         ],
     ),
     Onglet(

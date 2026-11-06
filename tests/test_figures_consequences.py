@@ -13,6 +13,8 @@ type FabriqueFigure = Callable[[pd.DataFrame], go.Figure]
 FIGURES = [
     figures_consequences.figure_famille_deces,
     figures_consequences.figure_famille_blesses,
+    figures_consequences.figure_famille_impliques,
+    figures_consequences.figure_evacuations,
 ]
 
 

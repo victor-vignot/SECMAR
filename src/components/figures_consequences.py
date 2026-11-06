@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 
 from src.components.graphiques import TextesFigure, barres_horizontales, figure_vide
 from src.components.theme import COULEURS_FAMILLES
-from src.utils.aggregations import indicateurs_par_groupe
+from src.utils.aggregations import comptage_par, indicateurs_par_groupe
+from src.utils.familles import EVENEMENTS_EVACUATION
 
 
 def _indicateur_famille(
@@ -49,3 +50,33 @@ def figure_famille_blesses(donnees: pd.DataFrame) -> go.Figure:
         ),
         ".1f",
     )
+
+
+def figure_famille_impliques(donnees: pd.DataFrame) -> go.Figure:
+    """Personnes impliquées par opération, selon la famille."""
+    return _indicateur_famille(
+        donnees, ["personnes_impliquees_sans_clandestins"], 1,
+        TextesFigure(
+            "Combien de personnes impliquées par opération ?",
+            "Moyenne par opération, hors personnes clandestines (évite les valeurs extrêmes)",
+            "Personnes impliquées par opération",
+        ),
+        ".1f",
+    )
+
+
+def figure_evacuations(donnees: pd.DataFrame) -> go.Figure:
+    """Évacuations sanitaires et médicales, par type d'événement."""
+    titre = "Évacuations sanitaires (EvaSan) et médicales (EvaMed)"
+    evacuations = donnees[donnees["evenement"].isin(EVENEMENTS_EVACUATION)]
+    if evacuations.empty:
+        return figure_vide(titre, "Aucune évacuation enregistrée sur cette sélection")
+    resume = comptage_par(evacuations, ["evenement"])
+    derniere_annee = int(evacuations["annee"].max())
+    textes = TextesFigure(
+        titre,
+        f"Nombre d'opérations · saisi seulement dans l'ancien système SECMARweb, "
+        f"quasi absent après 2020 (dernière année : {derniere_annee})",
+        "Nombre d'opérations",
+    )
+    return barres_horizontales(resume, ("evenement", "operations"), textes, ",.0f")
