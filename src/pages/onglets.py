@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from src.components import figures_conditions as conditions
+from src.components import figures_consequences as consequences
 from src.components import figures_quand as quand
 from src.utils.messages import FonctionMessages, messages_conditions, messages_quand
 
@@ -77,6 +78,10 @@ ONGLETS: list[Onglet] = [
         "consequences",
         "Conséquences",
         "Quels types d'événements ont les conséquences humaines les plus lourdes ?",
+        graphiques=[
+            Graphique(consequences.figure_famille_deces),
+            Graphique(consequences.figure_famille_blesses),
+        ],
     ),
     Onglet(
         "duree",
