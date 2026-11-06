@@ -1,10 +1,13 @@
 """Page principale du tableau de bord SECMAR."""
 
-from dash import Dash, Input, Output, html
+import pandas as pd
+from dash import Dash, Input, Output, dcc, html
 
 from src.components.carte import creer_carte, creer_section_carte, decrire_positions
 from src.components.filters import creer_panneau_filtres
 from src.components.kpi import creer_carte_kpi, formater_duree, formater_nombre
+from src.components.theme import COULEUR_PRINCIPALE
+from src.pages.onglets import ONGLETS, ONGLETS_PAR_IDENTIFIANT, Graphique, Onglet
 from src.utils.queries import (
     Filtres,
     calculer_kpi,
@@ -66,6 +69,46 @@ def creer_section_kpi() -> html.Section:
     )
 
 
+def creer_section_analyses() -> html.Section:
+    """Construit les onglets d'analyse ; leur contenu est rempli par callback."""
+    return html.Section(
+        className="panneau panneau-analyses",
+        children=[
+            html.H2("Analyses", className="titre-section"),
+            dcc.Tabs(
+                id="onglets",
+                value=ONGLETS[0].identifiant,
+                className="onglets",
+                children=[
+                    dcc.Tab(label=onglet.titre, value=onglet.identifiant,
+                            className="onglet", selected_className="onglet-actif")
+                    for onglet in ONGLETS
+                ],
+            ),
+            dcc.Loading(
+                type="circle",
+                color=COULEUR_PRINCIPALE,
+                children=html.Div(id="contenu-onglet", className="contenu-onglet"),
+            ),
+        ],
+    )
+
+
+def creer_pied_page() -> html.Footer:
+    """Construit le pied de page avec la source des données."""
+    return html.Footer(
+        className="pied-page",
+        children=[
+            "Source : ",
+            html.A(
+                "Opérations coordonnées par les CROSS (data.gouv.fr, Licence Ouverte)",
+                href="https://www.data.gouv.fr/fr/datasets/operations-coordonnees-par-les-cross/",
+                target="_blank",
+            ),
+        ],
+    )
+
+
 def creer_page_dashboard() -> html.Div:
     """Construit la page complète (appelée une fois au lancement)."""
     cross, familles = charger_options_filtres()
@@ -78,12 +121,41 @@ def creer_page_dashboard() -> html.Div:
             creer_panneau_filtres(cross, familles),
             creer_section_kpi(),
             creer_section_carte(),
+            creer_section_analyses(),
+            creer_pied_page(),
         ],
     )
 
 
+def construire_bloc_graphique(graphique: Graphique, donnees: pd.DataFrame) -> html.Div:
+    """Assemble un graphique et sa note de lecture."""
+    classe = "bloc-graphique pleine-largeur" if graphique.pleine_largeur else "bloc-graphique"
+    enfants: list[dcc.Graph | html.P] = [
+        dcc.Graph(figure=graphique.fonction(donnees), config={"displaylogo": False})
+    ]
+    if graphique.note:
+        enfants.append(html.P(graphique.note, className="note-lecture"))
+    return html.Div(className=classe, children=enfants)
+
+
+def construire_onglet(onglet: Onglet, donnees: pd.DataFrame) -> list[html.P | html.Div]:
+    """Construit le contenu d'un onglet : sa question puis ses graphiques."""
+    contenu: list[html.P | html.Div] = [html.P(onglet.question, className="question-onglet")]
+    if not onglet.graphiques:
+        contenu.append(html.P("Les graphiques de cet onglet sont en préparation.",
+                              className="note-lecture"))
+        return contenu
+    contenu.append(
+        html.Div(
+            className="grille-graphiques",
+            children=[construire_bloc_graphique(g, donnees) for g in onglet.graphiques],
+        )
+    )
+    return contenu
+
+
 def enregistrer_callbacks(app: Dash) -> None:
-    """Déclare les interactions entre les filtres, les KPI et la carte."""
+    """Déclare les interactions entre les filtres, les KPI, la carte et les onglets."""
 
     @app.callback(
         Output("kpi-operations", "children"),
@@ -107,3 +179,14 @@ def enregistrer_callbacks(app: Dash) -> None:
             creer_carte(donnees),
             decrire_positions(donnees),
         )
+
+    @app.callback(
+        Output("contenu-onglet", "children"),
+        Input("onglets", "value"),
+        *ENTREES_FILTRES,
+    )
+    def afficher_onglet(identifiant, periode, cross, famille, perimetre):  # type: ignore[no-untyped-def]
+        # Seul l'onglet visible est calculé : la page reste fluide.
+        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        onglet = ONGLETS_PAR_IDENTIFIANT.get(identifiant, ONGLETS[0])
+        return construire_onglet(onglet, donnees)
