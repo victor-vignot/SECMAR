@@ -79,3 +79,12 @@ body { margin: 0; background: var(--quai); color: var(--texte); font: 400 15px/1
     .grille-filtres, .grille-graphiques { grid-template-columns: 1fr; }
     .grille-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Messages « à retenir » en haut de chaque onglet. */
+.messages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 20px; }
+.message { background: var(--quai); border-left: 5px solid var(--port); border-radius: 0 6px 6px 0; padding: 12px 14px; }
+.message--alerte { border-left-color: var(--jaune); }
+.message--grave { border-left-color: var(--babord); }
+.message-titre { margin: 0 0 4px; font: 600 19px/1.15 "Barlow Condensed", "Arial Narrow", sans-serif; color: var(--port-fonce); }
+.message-texte { margin: 0; font-size: 14px; line-height: 1.45; }
+@media (max-width: 1000px) { .messages { grid-template-columns: 1fr; } }

@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 import pandas as pd
 import plotly.graph_objects as go
 
+from src.utils.messages import FonctionMessages
+
 FonctionFigure = Callable[[pd.DataFrame], go.Figure]
 
 
@@ -25,12 +27,13 @@ class Graphique:
 
 @dataclass(frozen=True)
 class Onglet:
-    """Un onglet d'analyse : identifiant, titre, question posée, graphiques."""
+    """Un onglet d'analyse : question posée, messages à retenir, graphiques."""
 
     identifiant: str
     titre: str
     question: str
     graphiques: list[Graphique] = field(default_factory=list)
+    messages: FonctionMessages | None = None
 
 
 ONGLETS: list[Onglet] = [

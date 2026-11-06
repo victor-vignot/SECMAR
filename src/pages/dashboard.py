@@ -6,6 +6,7 @@ from dash import Dash, Input, Output, dcc, html
 from src.components.carte import creer_carte, creer_section_carte, decrire_positions
 from src.components.filters import creer_panneau_filtres
 from src.components.kpi import creer_carte_kpi, formater_duree, formater_nombre
+from src.components.messages import creer_bandeau_messages
 from src.components.theme import COULEUR_PRINCIPALE
 from src.pages.onglets import ONGLETS, ONGLETS_PAR_IDENTIFIANT, Graphique, Onglet
 from src.utils.queries import (
@@ -139,8 +140,12 @@ def construire_bloc_graphique(graphique: Graphique, donnees: pd.DataFrame) -> ht
 
 
 def construire_onglet(onglet: Onglet, donnees: pd.DataFrame) -> list[html.P | html.Div]:
-    """Construit le contenu d'un onglet : sa question puis ses graphiques."""
+    """Construit le contenu d'un onglet : question, messages à retenir, graphiques."""
     contenu: list[html.P | html.Div] = [html.P(onglet.question, className="question-onglet")]
+    if onglet.messages is not None:
+        bandeau = creer_bandeau_messages(onglet.messages(donnees))
+        if bandeau is not None:
+            contenu.append(bandeau)
     if not onglet.graphiques:
         contenu.append(html.P("Les graphiques de cet onglet sont en préparation.",
                               className="note-lecture"))
