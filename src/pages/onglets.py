@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 import plotly.graph_objects as go
 
+from src.components import figures_conditions as conditions
 from src.components import figures_quand as quand
 from src.utils.messages import FonctionMessages, messages_quand
 
@@ -37,6 +38,15 @@ class Onglet:
     messages: FonctionMessages | None = None
 
 
+NOTE_FAMILLES = (
+    "Les familles regroupent les 68 types d'événements détaillés : elles restent "
+    "comparables malgré le changement de logiciel de saisie en 2019-2021."
+)
+NOTE_OBSERVATION = (
+    "Ces chiffres décrivent les opérations déclenchées, pas le risque d'accident : "
+    "il y a davantage de monde en mer par beau temps et en été."
+)
+
 ONGLETS: list[Onglet] = [
     Onglet(
         "quand",
@@ -53,6 +63,10 @@ ONGLETS: list[Onglet] = [
         "conditions",
         "Conditions",
         "Quelles conditions de vent et de mer accompagnent chaque type d'événement ?",
+        graphiques=[
+            Graphique(conditions.figure_vent_famille, note=NOTE_FAMILLES),
+            Graphique(conditions.figure_mer_famille, note=NOTE_OBSERVATION),
+        ],
     ),
     Onglet(
         "consequences",
