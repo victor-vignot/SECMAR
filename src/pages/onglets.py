@@ -136,6 +136,11 @@ ONGLETS: list[Onglet] = [
         "Évolution",
         "Comment les opérations ont-elles évolué depuis 1985 ?",
         graphiques=[
+            Graphique(
+                evolution.figure_bulles_animees, pleine_largeur=True,
+                note="Une famille se déplace vers la droite quand ses opérations sont plus "
+                "nombreuses, vers le haut quand elles sont plus meurtrières.",
+            ),
             Graphique(evolution.figure_courbe_annuelle, pleine_largeur=True,
                       note=NOTE_RUPTURES),
         ],
