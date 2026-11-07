@@ -116,6 +116,11 @@ ONGLETS: list[Onglet] = [
         "Quels profils de risque distinguent les territoires ?",
         graphiques=[
             Graphique(ou.figure_cross_famille, pleine_largeur=True),
+            Graphique(
+                ou.figure_departement_famille, pleine_largeur=True,
+                note="Le département n'est pas renseigné pour les opérations au large.",
+            ),
+            Graphique(ou.figure_zone_gravite, pleine_largeur=True),
         ],
     ),
     Onglet(

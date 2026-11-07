@@ -12,6 +12,8 @@ type FabriqueFigure = Callable[[pd.DataFrame], go.Figure]
 
 FIGURES = [
     figures_ou.figure_cross_famille,
+    figures_ou.figure_departement_famille,
+    figures_ou.figure_zone_gravite,
 ]
 
 
@@ -34,3 +36,9 @@ def test_cross_classes_du_plus_actif(echantillon: pd.DataFrame) -> None:
     """Le CROSS le plus actif est sur la première ligne de la carte de chaleur."""
     figure = figures_ou.figure_cross_famille(echantillon)
     assert figure.data[0].y[0] == echantillon["cross"].value_counts().index[0]
+
+
+def test_departements_limites_aux_plus_actifs(echantillon: pd.DataFrame) -> None:
+    """Au plus 15 départements sont affichés."""
+    figure = figures_ou.figure_departement_famille(echantillon)
+    assert len(figure.data[0].y) <= figures_ou.NOMBRE_DEPARTEMENTS

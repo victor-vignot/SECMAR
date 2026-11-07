@@ -3,8 +3,18 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-from src.components.graphiques import TextesFigure, carte_chaleur, formater_effectif
-from src.utils.aggregations import profil_croise
+from config import GRAVITES
+from src.components.graphiques import (
+    TextesFigure,
+    barres_groupees,
+    carte_chaleur,
+    formater_effectif,
+)
+from src.components.theme import COULEURS_GRAVITE
+from src.utils.aggregations import principales_modalites, profil_croise
+
+# Nombre maximal de départements affichés (les plus actifs).
+NOMBRE_DEPARTEMENTS = 15
 
 
 def _profil_territoire(
@@ -39,3 +49,26 @@ def _profil_territoire(
 def figure_cross_famille(donnees: pd.DataFrame) -> go.Figure:
     """CROSS × famille d'événements."""
     return _profil_territoire(donnees, "cross", "Profil des événements par CROSS", "CROSS")
+
+
+def figure_departement_famille(donnees: pd.DataFrame) -> go.Figure:
+    """Département × famille d'événements (les 15 départements les plus actifs)."""
+    retenus = principales_modalites(donnees, "departement", NOMBRE_DEPARTEMENTS)
+    return _profil_territoire(
+        donnees, "departement",
+        f"Profil des événements par département ({NOMBRE_DEPARTEMENTS} plus actifs)",
+        "Département", retenus,
+    )
+
+
+def figure_zone_gravite(donnees: pd.DataFrame) -> go.Figure:
+    """Part des opérations avec blessés, ou avec décès ou disparus, par façade."""
+    tableau = profil_croise(donnees, "zone", "gravite")
+    graves = tableau.pourcentages.drop(index=GRAVITES[0], errors="ignore")
+    textes = TextesFigure(
+        "Gravité des opérations selon la façade maritime",
+        "Part des opérations de la façade ayant fait des blessés, ou des décès ou disparus",
+        "Façade maritime",
+        "% des opérations",
+    )
+    return barres_groupees(graves, textes, COULEURS_GRAVITE)
