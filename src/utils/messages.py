@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from config import CLASSES_MER, CLASSES_VENT, NOMS_MOIS_LONGS
+from config import CLASSES_MER, CLASSES_VENT, GRAVITES, NOMS_MOIS_LONGS
 
 # Tons possibles : information, point de vigilance, conséquence grave.
 TONS_MESSAGES = ("info", "alerte", "grave")
@@ -153,4 +153,48 @@ def messages_conditions(donnees: pd.DataFrame) -> list[Message]:
                 "sélectionnées : les graphiques portent sur celles-ci.",
             )
         )
+    return messages
+
+
+def _taux_par_famille(donnees: pd.DataFrame, colonnes: list[str], pour: int) -> pd.Series:
+    """Somme des colonnes rapportée à `pour` opérations, par famille assez représentée."""
+    groupes = donnees.assign(_total=donnees[colonnes].sum(axis=1)).groupby(
+        "famille", observed=True
+    )["_total"]
+    taux = groupes.mean() * pour
+    return taux[groupes.size() >= EFFECTIF_MINIMAL_MESSAGE].sort_values(ascending=False)
+
+
+def messages_consequences(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Conséquences » : mortalité, blessés, part avec victimes."""
+    if len(donnees) < EFFECTIF_MINIMAL_MESSAGE:
+        return []
+    messages: list[Message] = []
+    deces = _taux_par_famille(donnees, ["personnes_decedees", "personnes_disparues"], 1000)
+    if len(deces) >= 2:
+        messages.append(
+            Message(
+                f"{deces.index[0]} : la famille la plus meurtrière",
+                f"{formater(deces.iloc[0])} décès ou disparus pour 1 000 opérations, "
+                f"contre {formater(deces.iloc[1])} pour « {deces.index[1]} », la suivante.",
+                "grave",
+            )
+        )
+    blesses = _taux_par_famille(donnees, ["personnes_blessees"], 100)
+    if len(blesses) >= 1:
+        messages.append(
+            Message(
+                f"{blesses.index[0]} : le plus de blessés",
+                f"{formater(blesses.iloc[0])} personnes blessées pour 100 opérations.",
+                "alerte",
+            )
+        )
+    avec_victimes = part_en_pourcent(donnees["gravite"].ne(GRAVITES[0]))
+    messages.append(
+        Message(
+            "Une minorité d'opérations avec victimes",
+            f"{formater(avec_victimes, 1)} % des opérations sélectionnées ont fait au moins "
+            "un blessé, un décès ou un disparu.",
+        )
+    )
     return messages

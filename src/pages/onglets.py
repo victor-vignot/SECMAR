@@ -14,7 +14,12 @@ import plotly.graph_objects as go
 from src.components import figures_conditions as conditions
 from src.components import figures_consequences as consequences
 from src.components import figures_quand as quand
-from src.utils.messages import FonctionMessages, messages_conditions, messages_quand
+from src.utils.messages import (
+    FonctionMessages,
+    messages_conditions,
+    messages_consequences,
+    messages_quand,
+)
 
 FonctionFigure = Callable[[pd.DataFrame], go.Figure]
 
@@ -84,6 +89,7 @@ ONGLETS: list[Onglet] = [
             Graphique(consequences.figure_famille_impliques),
             Graphique(consequences.figure_evacuations),
         ],
+        messages=messages_consequences,
     ),
     Onglet(
         "duree",

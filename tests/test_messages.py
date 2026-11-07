@@ -8,6 +8,7 @@ from src.utils.messages import (
     Message,
     formater,
     messages_conditions,
+    messages_consequences,
     messages_quand,
     part_en_pourcent,
     taux_pour_mille,
@@ -70,3 +71,10 @@ def test_messages_conditions_mer_forte() -> None:
     messages = messages_conditions(donnees)
     assert messages[0].ton == "grave"
     assert "× 5,0" in messages[0].titre
+
+
+def test_messages_consequences(echantillon: pd.DataFrame) -> None:
+    """Famille la plus meurtrière, plus de blessés, part avec victimes."""
+    messages = messages_consequences(echantillon)
+    assert [m.ton for m in messages] == ["grave", "alerte", "info"]
+    assert not messages_consequences(echantillon.head(10))
