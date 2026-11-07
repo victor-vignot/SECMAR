@@ -3,7 +3,13 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-from src.components.graphiques import TextesFigure, boites_quartiles
+from config import DISTANCE_MAX_HISTOGRAMME_MN, LARGEUR_CLASSE_DISTANCE_MN
+from src.components.graphiques import (
+    TextesFigure,
+    boites_quartiles,
+    figure_vide,
+    histogramme,
+)
 from src.utils.aggregations import quartiles_par_groupe
 
 LIBELLES = {
@@ -44,3 +50,29 @@ def figure_duree_famille(donnees: pd.DataFrame) -> go.Figure:
     return _duree_selon(
         donnees, "famille", "Durée des opérations selon la famille d'événements", True
     )
+
+
+def figure_distance_cote(donnees: pd.DataFrame) -> go.Figure:
+    """Histogramme de la distance entre l'opération et la côte (métropole)."""
+    titre = "À quelle distance de la côte ont lieu les opérations ?"
+    distances = donnees["distance_cote_mn"].dropna()
+    if distances.empty:
+        return figure_vide(titre, "Distance disponible uniquement pour la métropole")
+    au_bord = distances.eq(0).mean() * 100
+    au_large = distances.gt(DISTANCE_MAX_HISTOGRAMME_MN).mean() * 100
+    affichees = distances[distances.gt(0) & distances.le(DISTANCE_MAX_HISTOGRAMME_MN)]
+    textes = TextesFigure(
+        titre,
+        f"Métropole · {au_bord:.0f} % des opérations à 0 mille (plage, port) et "
+        f"{au_large:.0f} % au-delà de {DISTANCE_MAX_HISTOGRAMME_MN:.0f} milles, "
+        "non représentées",
+        "Distance à la côte (milles nautiques)",
+        "Nombre d'opérations (échelle log)",
+    )
+    figure = histogramme(
+        affichees, textes, (0, DISTANCE_MAX_HISTOGRAMME_MN, LARGEUR_CLASSE_DISTANCE_MN)
+    )
+    # Échelle logarithmique : les opérations proches du bord écrasent sinon
+    # toutes les autres classes.
+    figure.update_yaxes(type="log", dtick=1)
+    return figure

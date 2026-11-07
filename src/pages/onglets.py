@@ -99,7 +99,11 @@ ONGLETS: list[Onglet] = [
         graphiques=[
             Graphique(duree.figure_duree_vent),
             Graphique(duree.figure_duree_mer),
-            Graphique(duree.figure_duree_famille, pleine_largeur=True),
+            Graphique(duree.figure_duree_famille),
+            Graphique(
+                duree.figure_distance_cote,
+                note="Distance fournie par l'administration, fiable en métropole uniquement.",
+            ),
         ],
     ),
     Onglet(

@@ -14,6 +14,7 @@ FIGURES = [
     figures_duree.figure_duree_vent,
     figures_duree.figure_duree_mer,
     figures_duree.figure_duree_famille,
+    figures_duree.figure_distance_cote,
 ]
 
 
@@ -30,3 +31,10 @@ def test_figure_avec_titre_et_axes(fonction: FabriqueFigure, echantillon: pd.Dat
 def test_figure_sans_donnees(fonction: FabriqueFigure, echantillon: pd.DataFrame) -> None:
     """Une sélection vide donne une figure explicative, sans erreur."""
     assert fonction(echantillon.iloc[0:0]).layout.annotations
+
+
+def test_histogramme_limite_a_la_plage_affichee(echantillon: pd.DataFrame) -> None:
+    """L'histogramme exclut les distances nulles et au-delà de 30 milles."""
+    valeurs = pd.Series(figures_duree.figure_distance_cote(echantillon).data[0].x)
+    assert valeurs.gt(0).all()
+    assert valeurs.le(30).all()
