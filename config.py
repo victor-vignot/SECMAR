@@ -125,5 +125,12 @@ ZONE_INCONNUE = "Non renseignée"
 CORRECTIONS_CROSS = {"Adge": "Agde"}
 CORRECTIONS_DEPARTEMENT = {"Réunion": "La Réunion"}
 
+# Ruptures dans la façon d'enregistrer les opérations : (début, fin, explication).
+# Les comparaisons dans le temps qui les traversent sont à lire avec prudence.
+RUPTURES_SAISIE = [
+    (2009, 2010, "les « difficultés de manœuvre » deviennent des avaries de propulsion"),
+    (2019, 2021, "passage du logiciel SECMARweb au logiciel SEAMIS"),
+]
+
 # Valeur « tout sélectionner » des listes déroulantes.
 VALEUR_TOUTES = "toutes"

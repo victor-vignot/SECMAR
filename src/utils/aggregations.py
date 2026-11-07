@@ -133,3 +133,24 @@ def principales_modalites(donnees: pd.DataFrame, colonne: str, nombre: int) -> l
 def classer_distance(distance: pd.Series) -> pd.Series:
     """Range chaque distance à la côte dans sa classe (catégorie ordonnée)."""
     return pd.cut(distance, BORNES_DISTANCE, labels=CLASSES_DISTANCE)
+
+
+def evolution_annuelle(donnees: pd.DataFrame) -> pd.DataFrame:
+    """Par année et par famille : opérations, victimes graves, personnes impliquées.
+
+    `taux_victimes` = personnes décédées ou disparues pour 1 000 opérations.
+    """
+    travail = donnees.assign(
+        victimes=donnees["personnes_decedees"] + donnees["personnes_disparues"]
+    )
+    resultat = (
+        travail.groupby(["annee", "famille"], observed=True)
+        .agg(
+            operations=("operation_id", "size"),
+            victimes=("victimes", "sum"),
+            impliques=("personnes_impliquees_sans_clandestins", "sum"),
+        )
+        .reset_index()
+    )
+    resultat["taux_victimes"] = resultat["victimes"] / resultat["operations"] * 1000
+    return resultat

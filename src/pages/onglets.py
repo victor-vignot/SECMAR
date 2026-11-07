@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 from src.components import figures_conditions as conditions
 from src.components import figures_consequences as consequences
 from src.components import figures_duree as duree
+from src.components import figures_evolution as evolution
 from src.components import figures_ou as ou
 from src.components import figures_quand as quand
 from src.utils.messages import (
@@ -55,6 +56,11 @@ NOTE_FAMILLES = (
 NOTE_OBSERVATION = (
     "Ces chiffres décrivent les opérations déclenchées, pas le risque d'accident : "
     "il y a davantage de monde en mer par beau temps et en été."
+)
+
+NOTE_RUPTURES = (
+    "Additionnées, les familles « Avarie ou panne » et « Difficulté de navigation » "
+    "restent comparables avant et après 2009-2010."
 )
 
 ONGLETS: list[Onglet] = [
@@ -129,6 +135,10 @@ ONGLETS: list[Onglet] = [
         "evolution",
         "Évolution",
         "Comment les opérations ont-elles évolué depuis 1985 ?",
+        graphiques=[
+            Graphique(evolution.figure_courbe_annuelle, pleine_largeur=True,
+                      note=NOTE_RUPTURES),
+        ],
     ),
 ]
 

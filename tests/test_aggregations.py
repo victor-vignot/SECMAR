@@ -7,6 +7,7 @@ from src.utils.aggregations import (
     CLASSES_DISTANCE,
     classer_distance,
     comptage_par,
+    evolution_annuelle,
     indicateurs_par_groupe,
     principales_modalites,
     profil_croise,
@@ -71,3 +72,16 @@ def test_classes_de_distance() -> None:
     """0 mille = trait de côte ; 2 milles = 0,5 à 3 ; 40 milles = au-delà de 12."""
     classes = classer_distance(pd.Series([0.0, 2.0, 40.0]))
     assert classes.tolist() == [CLASSES_DISTANCE[0], CLASSES_DISTANCE[2], CLASSES_DISTANCE[4]]
+
+
+def test_evolution_annuelle() -> None:
+    """Opérations et décès ou disparus pour 1 000 opérations, par année et famille."""
+    donnees = pd.DataFrame({
+        "operation_id": [1, 2, 3, 4], "annee": [2020, 2020, 2020, 2021],
+        "famille": ["Médical"] * 4, "personnes_decedees": [1, 0, 0, 0],
+        "personnes_disparues": [0, 0, 0, 0], "personnes_impliquees_sans_clandestins": [2, 1, 1, 3],
+    })
+    ligne = evolution_annuelle(donnees).set_index("annee").loc[2020]
+    assert ligne["operations"] == 3
+    assert ligne["impliques"] == 4
+    assert ligne["taux_victimes"] == pytest.approx(1000 / 3)
