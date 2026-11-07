@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 from src.components import figures_conditions as conditions
 from src.components import figures_consequences as consequences
 from src.components import figures_duree as duree
+from src.components import figures_ou as ou
 from src.components import figures_quand as quand
 from src.utils.messages import (
     FonctionMessages,
@@ -113,6 +114,9 @@ ONGLETS: list[Onglet] = [
         "ou",
         "Où ?",
         "Quels profils de risque distinguent les territoires ?",
+        graphiques=[
+            Graphique(ou.figure_cross_famille, pleine_largeur=True),
+        ],
     ),
     Onglet(
         "evolution",
