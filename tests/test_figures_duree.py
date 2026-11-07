@@ -15,6 +15,7 @@ FIGURES = [
     figures_duree.figure_duree_mer,
     figures_duree.figure_duree_famille,
     figures_duree.figure_distance_cote,
+    figures_duree.figure_gravite_distance,
 ]
 
 
@@ -38,3 +39,18 @@ def test_histogramme_limite_a_la_plage_affichee(echantillon: pd.DataFrame) -> No
     valeurs = pd.Series(figures_duree.figure_distance_cote(echantillon).data[0].x)
     assert valeurs.gt(0).all()
     assert valeurs.le(30).all()
+
+
+def test_gravite_distance_dans_l_ordre_des_classes() -> None:
+    """Les classes restent dans l'ordre : trait de côte en haut, large en bas."""
+    donnees = pd.DataFrame({
+        "distance_cote_mn": [0.0, 0.2, 1.0, 5.0, 20.0],
+        "personnes_decedees": [1, 0, 0, 0, 1],
+        "personnes_disparues": [0, 0, 0, 0, 0],
+    })
+    barres = figures_duree.figure_gravite_distance(donnees).data[0]
+    # Plotly trace de bas en haut : le trait de côte est le dernier élément.
+    assert list(barres.y) == [
+        "Au-delà de 12 milles", "3 à 12 milles", "0,5 à 3 milles",
+        "Moins de 0,5 mille", "Au trait de côte",
+    ]

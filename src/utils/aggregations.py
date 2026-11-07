@@ -10,6 +10,16 @@ import pandas as pd
 
 from config import EFFECTIF_MINIMAL
 
+# Classes de distance à la côte (milles nautiques), de la plus proche à la plus lointaine.
+BORNES_DISTANCE = [-0.001, 0, 0.5, 3, 12, float("inf")]
+CLASSES_DISTANCE = [
+    "Au trait de côte",
+    "Moins de 0,5 mille",
+    "0,5 à 3 milles",
+    "3 à 12 milles",
+    "Au-delà de 12 milles",
+]
+
 
 @dataclass(frozen=True)
 class TableauCroise:
@@ -118,3 +128,8 @@ def comptage_par(donnees: pd.DataFrame, colonnes: list[str]) -> pd.DataFrame:
 def principales_modalites(donnees: pd.DataFrame, colonne: str, nombre: int) -> list[str]:
     """Les `nombre` valeurs les plus fréquentes d'une colonne."""
     return donnees[colonne].value_counts().head(nombre).index.tolist()
+
+
+def classer_distance(distance: pd.Series) -> pd.Series:
+    """Range chaque distance à la côte dans sa classe (catégorie ordonnée)."""
+    return pd.cut(distance, BORNES_DISTANCE, labels=CLASSES_DISTANCE)

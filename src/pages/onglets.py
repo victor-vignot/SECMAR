@@ -104,6 +104,7 @@ ONGLETS: list[Onglet] = [
                 duree.figure_distance_cote,
                 note="Distance fournie par l'administration, fiable en métropole uniquement.",
             ),
+            Graphique(duree.figure_gravite_distance, pleine_largeur=True),
         ],
     ),
     Onglet(

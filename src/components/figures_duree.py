@@ -6,11 +6,16 @@ import plotly.graph_objects as go
 from config import DISTANCE_MAX_HISTOGRAMME_MN, LARGEUR_CLASSE_DISTANCE_MN
 from src.components.graphiques import (
     TextesFigure,
+    barres_horizontales,
     boites_quartiles,
     figure_vide,
     histogramme,
 )
-from src.utils.aggregations import quartiles_par_groupe
+from src.utils.aggregations import (
+    classer_distance,
+    indicateurs_par_groupe,
+    quartiles_par_groupe,
+)
 
 LIBELLES = {
     "classe_vent": "Force du vent (échelle de Beaufort)",
@@ -76,3 +81,25 @@ def figure_distance_cote(donnees: pd.DataFrame) -> go.Figure:
     # toutes les autres classes.
     figure.update_yaxes(type="log", dtick=1)
     return figure
+
+
+def figure_gravite_distance(donnees: pd.DataFrame) -> go.Figure:
+    """Décès et disparus pour 1 000 opérations, selon la distance à la côte."""
+    titre = "La mortalité selon la distance à la côte"
+    metropole = donnees.dropna(subset=["distance_cote_mn"])
+    if metropole.empty:
+        return figure_vide(titre, "Distance disponible uniquement pour la métropole")
+    travail = metropole.assign(
+        classe_distance=classer_distance(metropole["distance_cote_mn"]),
+        victimes=metropole["personnes_decedees"] + metropole["personnes_disparues"],
+    )
+    resume = indicateurs_par_groupe(travail, "classe_distance", ["victimes"], pour=1000)
+    textes = TextesFigure(
+        titre,
+        "Métropole · personnes décédées ou disparues pour 1 000 opérations",
+        "Décès et disparus pour 1 000 opérations",
+    )
+    # Ordre des classes conservé : de la côte vers le large, de haut en bas.
+    return barres_horizontales(
+        resume, ("classe_distance", "taux_victimes"), textes, ".0f", trier=False
+    )

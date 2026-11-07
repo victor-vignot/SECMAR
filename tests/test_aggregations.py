@@ -4,6 +4,8 @@ import pandas as pd
 import pytest
 
 from src.utils.aggregations import (
+    CLASSES_DISTANCE,
+    classer_distance,
     comptage_par,
     indicateurs_par_groupe,
     principales_modalites,
@@ -63,3 +65,9 @@ def test_comptage_et_modalites(operations: pd.DataFrame) -> None:
     comptage = comptage_par(operations, ["vent", "famille"])
     assert comptage["operations"].sum() == 50
     assert principales_modalites(operations, "famille", 1) == ["Avarie"]
+
+
+def test_classes_de_distance() -> None:
+    """0 mille = trait de côte ; 2 milles = 0,5 à 3 ; 40 milles = au-delà de 12."""
+    classes = classer_distance(pd.Series([0.0, 2.0, 40.0]))
+    assert classes.tolist() == [CLASSES_DISTANCE[0], CLASSES_DISTANCE[2], CLASSES_DISTANCE[4]]
