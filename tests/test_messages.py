@@ -10,6 +10,7 @@ from src.utils.messages import (
     messages_conditions,
     messages_consequences,
     messages_duree,
+    messages_ou,
     messages_quand,
     part_en_pourcent,
     taux_pour_mille,
@@ -86,3 +87,11 @@ def test_messages_duree(echantillon: pd.DataFrame) -> None:
     titres = [m.titre for m in messages_duree(echantillon)]
     assert "Un secours de proximité" in titres
     assert any(titre.startswith("Mortalité la plus forte") for titre in titres)
+
+
+def test_messages_ou(echantillon: pd.DataFrame) -> None:
+    """CROSS le plus sollicité en premier ; aucun message pour un seul CROSS."""
+    messages = messages_ou(echantillon)
+    assert messages[0].titre.startswith(echantillon["cross"].value_counts().index[0])
+    un_seul = echantillon[echantillon["cross"] == "Étel"]
+    assert not messages_ou(un_seul)

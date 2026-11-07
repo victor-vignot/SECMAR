@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from config import CLASSES_MER, CLASSES_VENT, GRAVITES, NOMS_MOIS_LONGS
+from config import CLASSES_MER, CLASSES_VENT, GRAVITES, NOMS_MOIS_LONGS, ZONE_INCONNUE
 from src.utils.aggregations import classer_distance
 
 # Tons possibles : information, point de vigilance, conséquence grave.
@@ -250,3 +250,70 @@ def _classe_distance_la_plus_grave(donnees: pd.DataFrame) -> tuple[str, float] |
     if taux.empty:
         return None
     return str(taux.idxmax()), float(taux.max())
+
+
+# Un CROSS doit coordonner au moins ce nombre d'opérations pour qu'on décrive son profil.
+EFFECTIF_MINIMAL_TERRITOIRE = 300
+
+# Familles trop générales pour caractériser un territoire.
+FAMILLES_PEU_PARLANTES = ("Autre", "Non renseigné")
+
+
+def messages_ou(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Où ? » : CROSS le plus actif, profil distinctif, façade."""
+    if len(donnees) < EFFECTIF_MINIMAL_MESSAGE or donnees["cross"].nunique() < 2:
+        return []
+    par_cross = donnees["cross"].value_counts()
+    messages = [
+        Message(
+            f"{par_cross.index[0]}, le CROSS le plus sollicité",
+            f"Il coordonne {formater(par_cross.iloc[0] / len(donnees) * 100)} % des "
+            "opérations de la sélection.",
+        )
+    ]
+    distinctif = _profil_distinctif(donnees)
+    if distinctif is not None:
+        cross, famille, part_locale, part_moyenne = distinctif
+        messages.append(
+            Message(
+                f"{cross} : un profil à part",
+                f"« {famille} » y représente {formater(part_locale)} % des opérations, "
+                f"contre {formater(part_moyenne)} % sur l'ensemble de la sélection.",
+                "alerte",
+            )
+        )
+    zones = donnees[donnees["zone"] != ZONE_INCONNUE]
+    taux = victimes_graves(zones).groupby(zones["zone"]).mean() * 1000
+    taux = taux[zones["zone"].value_counts().reindex(taux.index) >= EFFECTIF_MINIMAL_MESSAGE]
+    if len(taux) >= 2:
+        messages.append(
+            Message(
+                f"{taux.idxmax()} : la zone la plus grave",
+                f"{formater(taux.max())} opérations sur 1 000 y comptent un décès ou un "
+                f"disparu, contre {formater(taux.min())} pour {taux.idxmin()}.",
+                "grave",
+            )
+        )
+    return messages
+
+
+def _profil_distinctif(donnees: pd.DataFrame) -> tuple[str, str, float, float] | None:
+    """Couple (CROSS, famille) le plus sur-représenté par rapport à la moyenne."""
+    parts_moyennes = donnees["famille"].value_counts(normalize=True) * 100
+    actifs = donnees["cross"].value_counts()
+    actifs = actifs[actifs >= EFFECTIF_MINIMAL_TERRITOIRE].index
+    parts = (
+        donnees[donnees["cross"].isin(actifs)]
+        .groupby("cross")["famille"]
+        .value_counts(normalize=True)
+        .mul(100)
+        .rename("part")
+        .reset_index()
+    )
+    parts = parts[~parts["famille"].isin(FAMILLES_PEU_PARLANTES) & parts["part"].ge(5)]
+    if parts.empty:
+        return None
+    parts["rapport"] = parts["part"] / parts["famille"].map(parts_moyennes).astype(float)
+    meilleur = parts.loc[parts["rapport"].idxmax()]
+    famille = str(meilleur["famille"])
+    return str(meilleur["cross"]), famille, float(meilleur["part"]), float(parts_moyennes[famille])

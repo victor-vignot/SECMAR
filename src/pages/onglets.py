@@ -21,6 +21,7 @@ from src.utils.messages import (
     messages_conditions,
     messages_consequences,
     messages_duree,
+    messages_ou,
     messages_quand,
 )
 
@@ -122,6 +123,7 @@ ONGLETS: list[Onglet] = [
             ),
             Graphique(ou.figure_zone_gravite, pleine_largeur=True),
         ],
+        messages=messages_ou,
     ),
     Onglet(
         "evolution",
