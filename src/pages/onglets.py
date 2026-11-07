@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 
 from src.components import figures_conditions as conditions
 from src.components import figures_consequences as consequences
+from src.components import figures_duree as duree
 from src.components import figures_quand as quand
 from src.utils.messages import (
     FonctionMessages,
@@ -95,6 +96,11 @@ ONGLETS: list[Onglet] = [
         "duree",
         "Durée et distance",
         "Quelles opérations durent le plus longtemps, et à quelle distance de la côte ?",
+        graphiques=[
+            Graphique(duree.figure_duree_vent),
+            Graphique(duree.figure_duree_mer),
+            Graphique(duree.figure_duree_famille, pleine_largeur=True),
+        ],
     ),
     Onglet(
         "ou",
