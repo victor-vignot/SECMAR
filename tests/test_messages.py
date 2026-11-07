@@ -9,6 +9,7 @@ from src.utils.messages import (
     formater,
     messages_conditions,
     messages_consequences,
+    messages_duree,
     messages_quand,
     part_en_pourcent,
     taux_pour_mille,
@@ -78,3 +79,10 @@ def test_messages_consequences(echantillon: pd.DataFrame) -> None:
     messages = messages_consequences(echantillon)
     assert [m.ton for m in messages] == ["grave", "alerte", "info"]
     assert not messages_consequences(echantillon.head(10))
+
+
+def test_messages_duree(echantillon: pd.DataFrame) -> None:
+    """Message de proximité et classe de distance la plus grave sur l'échantillon."""
+    titres = [m.titre for m in messages_duree(echantillon)]
+    assert "Un secours de proximité" in titres
+    assert any(titre.startswith("Mortalité la plus forte") for titre in titres)

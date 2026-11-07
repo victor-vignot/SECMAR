@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from config import CLASSES_MER, CLASSES_VENT, GRAVITES, NOMS_MOIS_LONGS
+from src.utils.aggregations import classer_distance
 
 # Tons possibles : information, point de vigilance, conséquence grave.
 TONS_MESSAGES = ("info", "alerte", "grave")
@@ -198,3 +199,54 @@ def messages_consequences(donnees: pd.DataFrame) -> list[Message]:
         )
     )
     return messages
+
+
+def messages_duree(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Durée et distance »."""
+    messages: list[Message] = []
+    calme, tres_forte = next(iter(CLASSES_MER)), list(CLASSES_MER)[-1]
+    durees_calme = donnees.loc[donnees["classe_mer"] == calme, "duree_heures"].dropna()
+    durees_forte = donnees.loc[donnees["classe_mer"] == tres_forte, "duree_heures"].dropna()
+    if min(len(durees_calme), len(durees_forte)) >= EFFECTIF_MINIMAL_MESSAGE:
+        longue_forte, longue_calme = durees_forte.quantile(0.9), durees_calme.quantile(0.9)
+        if longue_forte > longue_calme:
+            messages.append(
+                Message(
+                    "Mer très forte : des opérations plus longues",
+                    f"Par mer très forte, une opération sur dix dure plus de "
+                    f"{formater(longue_forte)} h, contre {formater(longue_calme)} h par mer calme.",
+                    "alerte",
+                )
+            )
+    distances = donnees["distance_cote_mn"].dropna()
+    if len(distances) >= EFFECTIF_MINIMAL_MESSAGE:
+        messages.append(
+            Message(
+                "Un secours de proximité",
+                f"En métropole, {formater(part_en_pourcent(distances.le(1)))} % des opérations "
+                "ont lieu à moins d'un mille nautique (1,85 km) de la côte.",
+            )
+        )
+        classe_la_plus_grave = _classe_distance_la_plus_grave(donnees)
+        if classe_la_plus_grave is not None:
+            classe, taux = classe_la_plus_grave
+            messages.append(
+                Message(
+                    f"Mortalité la plus forte : {classe.lower()}",
+                    f"{formater(taux)} décès ou disparus pour 1 000 opérations dans cette "
+                    "classe de distance, la plus élevée de la sélection.",
+                    "grave",
+                )
+            )
+    return messages
+
+
+def _classe_distance_la_plus_grave(donnees: pd.DataFrame) -> tuple[str, float] | None:
+    """Classe de distance où le nombre de décès et disparus par opération est le plus fort."""
+    metropole = donnees.dropna(subset=["distance_cote_mn"])
+    victimes = metropole["personnes_decedees"] + metropole["personnes_disparues"]
+    groupes = victimes.groupby(classer_distance(metropole["distance_cote_mn"]), observed=True)
+    taux = (groupes.mean() * 1000)[groupes.size() >= EFFECTIF_MINIMAL_MESSAGE]
+    if taux.empty:
+        return None
+    return str(taux.idxmax()), float(taux.max())

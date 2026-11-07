@@ -19,6 +19,7 @@ from src.utils.messages import (
     FonctionMessages,
     messages_conditions,
     messages_consequences,
+    messages_duree,
     messages_quand,
 )
 
@@ -106,6 +107,7 @@ ONGLETS: list[Onglet] = [
             ),
             Graphique(duree.figure_gravite_distance, pleine_largeur=True),
         ],
+        messages=messages_duree,
     ),
     Onglet(
         "ou",
