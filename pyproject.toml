@@ -45,3 +45,10 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 # Toute fonction du projet doit déclarer les types de ses paramètres et de son retour.
 disallow_untyped_defs = true
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.design]
+# Les fonctions de figures prennent données, colonnes, textes et deux options d'affichage.
+max-args = 6
