@@ -22,6 +22,7 @@ from src.utils.messages import (
     messages_conditions,
     messages_consequences,
     messages_duree,
+    messages_evolution,
     messages_ou,
     messages_quand,
 )
@@ -144,6 +145,7 @@ ONGLETS: list[Onglet] = [
             Graphique(evolution.figure_courbe_annuelle, pleine_largeur=True,
                       note=NOTE_RUPTURES),
         ],
+        messages=messages_evolution,
     ),
 ]
 

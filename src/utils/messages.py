@@ -10,7 +10,14 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from config import CLASSES_MER, CLASSES_VENT, GRAVITES, NOMS_MOIS_LONGS, ZONE_INCONNUE
+from config import (
+    CLASSES_MER,
+    CLASSES_VENT,
+    GRAVITES,
+    NOMS_MOIS_LONGS,
+    RUPTURES_SAISIE,
+    ZONE_INCONNUE,
+)
 from src.utils.aggregations import classer_distance
 
 # Tons possibles : information, point de vigilance, conséquence grave.
@@ -317,3 +324,48 @@ def _profil_distinctif(donnees: pd.DataFrame) -> tuple[str, str, float, float] |
     meilleur = parts.loc[parts["rapport"].idxmax()]
     famille = str(meilleur["famille"])
     return str(meilleur["cross"]), famille, float(meilleur["part"]), float(parts_moyennes[famille])
+
+
+def _message_ruptures(premiere: int, derniere: int) -> Message | None:
+    """Avertissement si la période choisie traverse un changement de saisie."""
+    traversees = [
+        rupture for rupture in RUPTURES_SAISIE if premiere < rupture[0] and derniere > rupture[1]
+    ]
+    if not traversees:
+        return None
+    periodes = " et ".join(f"{debut}-{fin}" for debut, fin, _ in traversees)
+    explications = " ; ".join(explication for _, _, explication in traversees)
+    return Message(
+        f"Prudence sur {periodes}",
+        f"La façon d'enregistrer les opérations a changé ({explications}) : "
+        "une partie des variations vient de la saisie, pas du terrain.",
+        "alerte",
+    )
+
+
+def messages_evolution(donnees: pd.DataFrame) -> list[Message]:
+    """Messages de l'onglet « Évolution » : tendance, année record, prudence."""
+    annees = sorted(int(annee) for annee in donnees["annee"].dropna().unique())
+    if len(annees) < 2 or len(donnees) < EFFECTIF_MINIMAL_MESSAGE:
+        return []
+    par_annee = donnees["annee"].value_counts()
+    premiere, derniere = annees[0], annees[-1]
+    debut, fin = int(par_annee[premiere]), int(par_annee[derniere])
+    sens = "hausse" if fin > debut else "baisse"
+    record = int(par_annee.idxmax())
+    messages = [
+        Message(
+            f"Activité en {sens} de {premiere} à {derniere}",
+            f"{formater(debut)} opérations en {premiere}, {formater(fin)} en {derniere}, "
+            f"soit {formater(fin / debut, 1)} fois le niveau de départ.",
+            "alerte" if sens == "hausse" else "info",
+        ),
+        Message(
+            f"{record} : l'année record",
+            f"{formater(par_annee.max())} opérations, le plus haut niveau de la sélection.",
+        ),
+    ]
+    prudence = _message_ruptures(premiere, derniere)
+    if prudence is not None:
+        messages.append(prudence)
+    return messages

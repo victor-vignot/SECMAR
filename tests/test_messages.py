@@ -10,6 +10,7 @@ from src.utils.messages import (
     messages_conditions,
     messages_consequences,
     messages_duree,
+    messages_evolution,
     messages_ou,
     messages_quand,
     part_en_pourcent,
@@ -95,3 +96,18 @@ def test_messages_ou(echantillon: pd.DataFrame) -> None:
     assert messages[0].titre.startswith(echantillon["cross"].value_counts().index[0])
     un_seul = echantillon[echantillon["cross"] == "Étel"]
     assert not messages_ou(un_seul)
+
+
+def test_messages_evolution() -> None:
+    """Hausse, année record et prudence quand la période traverse les ruptures."""
+    donnees = pd.DataFrame({"annee": [2005] * 100 + [2015] * 400 + [2024] * 300})
+    messages = messages_evolution(donnees)
+    assert messages[0].titre == "Activité en hausse de 2005 à 2024"
+    assert messages[1].titre == "2015 : l'année record"
+    assert messages[2].titre == "Prudence sur 2009-2010 et 2019-2021"
+
+
+def test_messages_evolution_sans_rupture() -> None:
+    """Pas de message de prudence sur une période sans rupture de saisie."""
+    donnees = pd.DataFrame({"annee": [2011] * 100 + [2017] * 120})
+    assert len(messages_evolution(donnees)) == 2
