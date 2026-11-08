@@ -29,6 +29,9 @@ pythonpath = ["."]
 testpaths = ["tests"]
 # Le plugin de test de Dash (non utilise ici) emet un avertissement pytest.
 addopts = "-p no:dash"
+# Un avertissement (pandas, plotly...) pendant les tests les fait échouer :
+# la console de l'application reste propre.
+filterwarnings = ["error"]
 
 # --- Outils de qualité (évaluation : ruff, pylint, mypy, radon) -------------
 [tool.ruff]
