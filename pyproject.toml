@@ -43,3 +43,5 @@ explicit_package_bases = true
 # Pandas, Plotly, Dash et Shapely ne publient pas d'annotations de types complètes.
 ignore_missing_imports = true
 warn_unused_ignores = true
+# Toute fonction du projet doit déclarer les types de ses paramètres et de son retour.
+disallow_untyped_defs = true
