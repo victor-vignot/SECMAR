@@ -50,3 +50,9 @@ def fixture_echantillon() -> pd.DataFrame:
         "gravite": tirer(GRAVITES),
     })
     return typer_categories(donnees)
+
+
+@pytest.fixture(name="grand_echantillon")
+def fixture_grand_echantillon(echantillon: pd.DataFrame) -> pd.DataFrame:
+    """L'échantillon répété 10 fois : assez d'opérations par famille et par an."""
+    return pd.concat([echantillon] * 10, ignore_index=True)
