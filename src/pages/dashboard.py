@@ -1,6 +1,7 @@
 """Page principale du tableau de bord SECMAR."""
 
 import pandas as pd
+import plotly.graph_objects as go
 from dash import Dash, Input, Output, dcc, html
 
 from src.components.carte import creer_carte, creer_section_carte, decrire_positions
@@ -172,7 +173,9 @@ def enregistrer_callbacks(app: Dash) -> None:
         Output("note-carte", "children"),
         *ENTREES_FILTRES,
     )
-    def mettre_a_jour_vue_generale(periode, cross, famille, perimetre):  # type: ignore[no-untyped-def]
+    def mettre_a_jour_vue_generale(
+        periode: list[int], cross: str, famille: str, perimetre: str
+    ) -> tuple[str, str, str, str, str, go.Figure, str]:
         donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
         kpi = calculer_kpi(donnees)
         return (
@@ -190,7 +193,9 @@ def enregistrer_callbacks(app: Dash) -> None:
         Input("onglets", "value"),
         *ENTREES_FILTRES,
     )
-    def afficher_onglet(identifiant, periode, cross, famille, perimetre):  # type: ignore[no-untyped-def]
+    def afficher_onglet(
+        identifiant: str, periode: list[int], cross: str, famille: str, perimetre: str
+    ) -> list[html.P | html.Div]:
         # Seul l'onglet visible est calculé : la page reste fluide.
         donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
         onglet = ONGLETS_PAR_IDENTIFIANT.get(identifiant, ONGLETS[0])

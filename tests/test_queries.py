@@ -1,6 +1,7 @@
 """Tests de la couche de requêtes et de la base SQLite."""
 
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -49,7 +50,7 @@ def test_kpi_sur_petit_tableau() -> None:
     assert kpi["duree_mediane"] == pytest.approx(2.0)
 
 
-def test_archive_aller_retour(tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_archive_aller_retour(tmp_path: Path) -> None:
     """L'archive garde raw et cleaned, retire les autres tables."""
     base = tmp_path / "db.sqlite"
     with sqlite3.connect(base) as connexion:
@@ -68,7 +69,7 @@ def test_archive_aller_retour(tmp_path) -> None:  # type: ignore[no-untyped-def]
     assert tables == {"raw", "cleaned"}
 
 
-def test_restauration_ne_remplace_pas_une_base(tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_restauration_ne_remplace_pas_une_base(tmp_path: Path) -> None:
     """Une base existante n'est jamais écrasée par l'archive."""
     base = tmp_path / "db.sqlite"
     base.write_bytes(b"existante")

@@ -36,3 +36,10 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "SIM", "UP", "N"]
+
+[tool.mypy]
+python_version = "3.14"
+explicit_package_bases = true
+# Pandas, Plotly, Dash et Shapely ne publient pas d'annotations de types complètes.
+ignore_missing_imports = true
+warn_unused_ignores = true

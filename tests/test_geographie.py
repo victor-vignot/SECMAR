@@ -1,6 +1,7 @@
 """Tests du contrôle des positions (`src/utils/geographie.py`)."""
 
 import json
+from pathlib import Path
 
 import numpy as np
 import shapely
@@ -30,7 +31,7 @@ def test_positions_manquantes() -> None:
     assert resultat.tolist() == [False]
 
 
-def test_chargement_geojson(tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_chargement_geojson(tmp_path: Path) -> None:
     """Un fichier GeoJSON de terres est chargé en une seule géométrie."""
     chemin = tmp_path / "terres.geojson"
     entite = {"type": "Feature", "properties": {}, "geometry": shapely.geometry.mapping(ILE)}
