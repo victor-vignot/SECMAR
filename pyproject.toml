@@ -29,3 +29,10 @@ pythonpath = ["."]
 testpaths = ["tests"]
 # Le plugin de test de Dash (non utilise ici) emet un avertissement pytest.
 addopts = "-p no:dash"
+
+# --- Outils de qualité (évaluation : ruff, pylint, mypy, radon) -------------
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "SIM", "UP", "N"]
