@@ -242,3 +242,68 @@ uv run --group dev radon cc main.py src -a
 Les outils de développement sont dans le groupe `dev` de `pyproject.toml` : un
 simple `uv sync` installe uniquement les dépendances d'exécution. Un
 avertissement émis pendant les tests les fait échouer.
+
+---
+
+## Rapport d'analyse
+
+Période 2005-2025, tous périmètres : 250 726 opérations. Les messages à retenir
+affichés en tête de chaque onglet recalculent ces constats pour la sélection
+choisie dans les filtres.
+
+**Quand ?** L'activité est très estivale : août concentre 18 % des opérations
+de l'année (contre 8 % si elles étaient réparties également) et l'été 43 %,
+contre 14 % pour l'hiver. Baignade et loisirs est la famille la plus
+saisonnière (7,8 fois plus d'opérations en août qu'en janvier). En
+Méditerranée, 56 % des opérations ont lieu l'été, contre 36 % en Manche - mer
+du Nord ; en outre-mer, les quatre saisons pèsent chacune environ un quart.
+
+**Conditions.** Par vent faible (0-3 Beaufort), les avaries et pannes dominent
+(33 % des opérations). Par vent de 8 et plus, leur part tombe à 19 % au profit
+des accidents de navire (20 %, contre 13 % par vent faible) et des difficultés
+de navigation (16 %). La mer pèse sur la gravité : par mer très forte,
+20 opérations sur 1 000 comptent un décès ou un disparu, deux fois plus que par
+mer calme (10).
+
+**Conséquences.** Les opérations « personne à la mer ou disparue » sont de loin
+les plus meurtrières : 240 décès ou disparus pour 1 000 opérations, contre 60
+pour la baignade et les loisirs, la famille suivante. Les blessés se
+concentrent dans les opérations médicales (51 blessés pour 100 opérations).
+Au total, 7,9 % des opérations font au moins une victime.
+
+**Durée et distance.** La durée médiane varie peu avec la météo (1,8 h à 2,6 h),
+mais les opérations longues se multiplient : par mer très forte, une opération
+sur dix dure plus de 21 h, contre 7 h par mer calme. En métropole, 22 % des
+opérations ont lieu au trait de côte, 66 % à moins d'un mille et 78 % à moins
+de trois milles ; seules 13 % se déroulent au-delà de 12 milles, mais c'est
+là que la mortalité est la plus forte (24 décès ou disparus pour 1 000
+opérations).
+
+**Où ?** Étel coordonne 23 % des opérations. Le profil de Gris-Nez
+(Pas-de-Calais) se distingue nettement : la sûreté et les migrations y
+représentent 21 % de l'activité, contre 3 % ailleurs. L'outre-mer est la zone
+la plus grave (22 opérations sur 1 000 avec décès ou disparus, contre 8 à 11
+sur les façades métropolitaines) ; la Méditerranée a la plus forte part
+d'opérations avec blessés.
+
+**Évolution.** L'activité a été multipliée par 2,1 entre 2005 (7 782 opérations)
+et 2025 (16 322), avec un record en 2022 (17 094). Une partie des variations
+vient des deux ruptures de saisie (2009-2010 et 2019-2021) : les comparaisons
+qui les traversent doivent être lues avec prudence.
+
+### Pistes pour la prévention
+
+Ces constats décrivent des opérations déclenchées, pas un risque individuel ;
+ils suggèrent néanmoins des priorités :
+
+- **Renforcer les moyens et la prévention en juillet-août**, en particulier
+  sur les plages de Méditerranée et d'Atlantique (baignade et loisirs).
+- **Traiter toute alerte « personne à la mer » comme une urgence vitale** :
+  plus d'une opération sur cinq s'y termine par un décès ou un disparu.
+- **Anticiper les opérations longues par mer forte** (relèves d'équipage,
+  moyens aériens), la durée des cas difficiles triplant.
+- **Cibler la plaisance de proximité** : deux tiers des opérations ont lieu à
+  moins d'un mille, là où l'entretien du moteur et l'équipement de base
+  (gilet, moyen d'appel) évitent la plupart des avaries.
+- **Adapter les messages par territoire** : sûreté et migrations à Gris-Nez,
+  gravité plus forte en outre-mer.
