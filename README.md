@@ -307,3 +307,33 @@ ils suggèrent néanmoins des priorités :
   (gilet, moyen d'appel) évitent la plupart des avaries.
 - **Adapter les messages par territoire** : sûreté et migrations à Gris-Nez,
   gravité plus forte en outre-mer.
+
+---
+
+## Copyright
+
+_Déclaration des auteurs : à rédiger._
+
+### Emprunts et syntaxes particulières
+
+| Fichier | Lignes | Source | Explication |
+| --- | --- | --- | --- |
+| `src/utils/database.py` | `closing(sqlite3.connect(...))` | [Documentation Python, sqlite3](https://docs.python.org/3/library/sqlite3.html#how-to-use-the-connection-context-manager) | Le gestionnaire de contexte d'une connexion valide la transaction sans fermer la connexion ; `closing` garantit la fermeture |
+| `src/utils/database.py` | `VACUUM INTO ?` | [Documentation SQLite](https://www.sqlite.org/lang_vacuum.html#vacuuminto) | Copie compacte de la base dans un nouveau fichier |
+| `src/utils/database.py` | `lzma.open` + `shutil.copyfileobj` | [Documentation Python, lzma](https://docs.python.org/3/library/lzma.html) | Compression xz par blocs, sans charger le fichier en mémoire |
+| `src/utils/get_data.py` | `ssl.create_default_context(cafile=certifi.where())` | [Documentation certifi](https://pypi.org/project/certifi/) | Certificats racines fiables, y compris avec le Python de python.org sur Mac |
+| `src/utils/geographie.py` | `STRtree(...).query_nearest(..., return_distance=True)` | [Documentation shapely, STRtree](https://shapely.readthedocs.io/en/stable/strtree.html) | Index spatial : distance de chaque point à la côte la plus proche, sans parcourir tout le trait de côte |
+| `src/utils/queries.py` | `@lru_cache` | [Documentation Python, functools](https://docs.python.org/3/library/functools.html#functools.lru_cache) | Mise en cache du résultat de la requête pour des filtres identiques |
+| `src/components/graphiques.py` | `go.Box(q1=..., median=..., lowerfence=...)` | [Plotly, box plots précalculés](https://plotly.com/python/box-plots/) | Boîtes à moustaches à partir de quantiles déjà calculés |
+| `src/components/figures_evolution.py` | `px.scatter(..., animation_frame="annee")`, `add_vrect` | [Plotly, animations](https://plotly.com/python/animations/), [formes](https://plotly.com/python/horizontal-vertical-shapes/) | Bulles animées année par année ; bandes grisées des ruptures de saisie |
+
+### Ressources graphiques
+
+- Polices [Barlow Condensed](https://github.com/jpt/barlow) et [Public Sans](https://github.com/uswds/public-sans),
+  sous licence SIL Open Font License 1.1 (textes de licence dans `assets/fonts/`).
+- Pictogramme de bouée (`assets/logo.svg`) : dessin original du projet, sans lien avec les
+  logos officiels du CROSS, de la SNSM ou de la SNOSAN.
+
+Toute ligne non déclarée ci-dessus est réputée être produite par les auteurs du projet.
+
+Auteurs : _à compléter (noms et adresses ESIEE)._
