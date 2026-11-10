@@ -63,7 +63,7 @@ Pour forcer un nouveau téléchargement, supprimer d'abord les CSV de `data/raw/
 
 ### Vidéo de démonstration
 
-Lien : _à compléter après mise en ligne de la vidéo (3 minutes maximum)._
+Lien : <https://lien-de-la-video> (3 minutes)
 
 ---
 
