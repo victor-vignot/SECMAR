@@ -46,7 +46,7 @@ def appliquer_charte(figure: go.Figure, textes: TextesFigure) -> go.Figure:
     figure.update_layout(**LAYOUT_GRAPHIQUE)
     figure.update_layout(
         title={"text": textes.titre, "subtitle": {"text": "<br>".join(lignes)}},
-        margin={"t": LAYOUT_GRAPHIQUE["margin"]["t"] + 16 * (len(lignes) - 1)},
+        margin={"t": LAYOUT_GRAPHIQUE["margin"]["t"] + 17 * (len(lignes) - 1)},
     )
     return figure
 

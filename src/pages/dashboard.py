@@ -134,7 +134,7 @@ def construire_bloc_graphique(graphique: Graphique, donnees: pd.DataFrame) -> ht
     """Assemble un graphique et sa note de lecture."""
     classe = "bloc-graphique pleine-largeur" if graphique.pleine_largeur else "bloc-graphique"
     enfants: list[dcc.Graph | html.P] = [
-        dcc.Graph(figure=graphique.fonction(donnees), config={"displaylogo": False})
+        dcc.Graph(figure=graphique.fonction(donnees), config={"displayModeBar": False})
     ]
     if graphique.note:
         enfants.append(html.P(graphique.note, className="note-lecture"))
