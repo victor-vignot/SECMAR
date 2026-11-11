@@ -7,6 +7,7 @@ from dash import html
 from src.pages.dashboard import construire_onglet
 from src.pages.onglets import ONGLETS, ONGLETS_PAR_IDENTIFIANT, Onglet
 from src.utils.database import base_est_prete
+from src.utils.familles import FAMILLE_INCONNUE
 
 
 def test_six_onglets_aux_identifiants_uniques() -> None:
@@ -36,3 +37,11 @@ def test_application_complete() -> None:
     assert callbacks[0](*filtres)[0] != "N/D"
     for onglet in ONGLETS:
         assert callbacks[1](onglet.identifiant, *filtres)
+
+
+def test_onglet_sans_non_renseigne(echantillon: pd.DataFrame) -> None:
+    """Les opérations « Non renseigné » sont écartées des analyses, et c'est signalé."""
+    donnees = echantillon.astype({"famille": str})
+    donnees.loc[:49, "famille"] = FAMILLE_INCONNUE
+    contenu = construire_onglet(ONGLETS[0], donnees)
+    assert contenu[-1].children.startswith("50 opérations sans type d'événement")

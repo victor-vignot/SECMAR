@@ -10,6 +10,7 @@ from src.components.kpi import creer_carte_kpi, formater_duree, formater_nombre
 from src.components.messages import creer_bandeau_messages
 from src.components.theme import COULEUR_PRINCIPALE
 from src.pages.onglets import ONGLETS, ONGLETS_PAR_IDENTIFIANT, Graphique, Onglet
+from src.utils.familles import FAMILLE_INCONNUE
 from src.utils.queries import (
     Filtres,
     calculer_kpi,
@@ -141,7 +142,16 @@ def construire_bloc_graphique(graphique: Graphique, donnees: pd.DataFrame) -> ht
 
 
 def construire_onglet(onglet: Onglet, donnees: pd.DataFrame) -> list[html.P | html.Div]:
-    """Construit le contenu d'un onglet : question, messages à retenir, graphiques."""
+    """Construit le contenu d'un onglet : question, messages à retenir, graphiques.
+
+    Les opérations sans type d'événement (« Non renseigné ») restent dans les
+    indicateurs, mais pas dans les analyses : elles n'apprennent rien.
+    """
+    non_renseignees = int((donnees["famille"] == FAMILLE_INCONNUE).sum())
+    donnees = donnees[donnees["famille"] != FAMILLE_INCONNUE]
+    if isinstance(donnees["famille"].dtype, pd.CategoricalDtype):
+        # La catégorie vide disparaîtrait sinon des données mais pas des graphiques.
+        donnees = donnees.assign(famille=donnees["famille"].cat.remove_unused_categories())
     contenu: list[html.P | html.Div] = [html.P(onglet.question, className="question-onglet")]
     if onglet.messages is not None:
         bandeau = creer_bandeau_messages(onglet.messages(donnees))
@@ -157,6 +167,11 @@ def construire_onglet(onglet: Onglet, donnees: pd.DataFrame) -> list[html.P | ht
             children=[construire_bloc_graphique(g, donnees) for g in onglet.graphiques],
         )
     )
+    if non_renseignees:
+        contenu.append(html.P(
+            f"{formater_nombre(non_renseignees)} opérations sans type d'événement renseigné "
+            "comptent dans les indicateurs mais ne figurent pas dans ces analyses.",
+            className="note-lecture note-onglet"))
     return contenu
 
 

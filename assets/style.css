@@ -88,3 +88,6 @@ body { margin: 0; background: var(--quai); color: var(--texte); font: 400 15px/1
 .message-titre { margin: 0 0 4px; font: 600 19px/1.15 "Barlow Condensed", "Arial Narrow", sans-serif; color: var(--port-fonce); }
 .message-texte { margin: 0; font-size: 14px; line-height: 1.45; }
 @media (max-width: 1000px) { .messages { grid-template-columns: 1fr; } }
+
+/* Note en bas d'onglet (opérations écartées des analyses) */
+.note-onglet { margin-top: 14px; font-style: italic; }
