@@ -18,7 +18,7 @@ from config import (
     RUPTURES_SAISIE,
     ZONE_INCONNUE,
 )
-from src.utils.aggregations import classer_distance
+from src.utils.aggregations import CLASSES_DISTANCE, classer_distance
 
 # Tons possibles : information, point de vigilance, conséquence grave.
 TONS_MESSAGES = ("info", "alerte", "grave")
@@ -262,7 +262,8 @@ def messages_duree(donnees: pd.DataFrame) -> list[Message]:
                 Message(
                     f"Mortalité la plus forte : {classe.lower()}",
                     f"{formater(taux)} décès ou disparus pour 1 000 opérations dans cette "
-                    "classe de distance, la plus élevée de la sélection.",
+                    "classe de distance, la plus élevée de la sélection (hors opérations "
+                    "lointaines).",
                     "grave",
                 )
             )
@@ -275,6 +276,9 @@ def _classe_distance_la_plus_grave(donnees: pd.DataFrame) -> tuple[str, float] |
     victimes = metropole["personnes_decedees"] + metropole["personnes_disparues"]
     groupes = victimes.groupby(classer_distance(metropole["distance_cote_mn"]), observed=True)
     taux = (groupes.mean() * 1000)[groupes.size() >= EFFECTIF_MINIMAL_MESSAGE]
+    # Les opérations lointaines (relais d'alertes à l'étranger) ne disent rien des
+    # risques près de nos côtes : elles ne participent pas à la comparaison.
+    taux = taux.drop(CLASSES_DISTANCE[-1], errors="ignore")
     if taux.empty:
         return None
     return str(taux.idxmax()), float(taux.max())

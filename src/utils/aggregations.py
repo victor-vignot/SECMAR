@@ -11,13 +11,16 @@ import pandas as pd
 from config import EFFECTIF_MINIMAL
 
 # Classes de distance à la côte (milles nautiques), de la plus proche à la plus lointaine.
-BORNES_DISTANCE = [-0.001, 0, 0.5, 3, 12, float("inf")]
+# Au-delà de 200 milles : surtout des alertes relayées depuis l'étranger (Gris-Nez),
+# un profil à part qu'il ne faut pas mélanger avec le large proche.
+BORNES_DISTANCE = [-0.001, 0, 0.5, 3, 12, 200, float("inf")]
 CLASSES_DISTANCE = [
     "Au trait de côte",
     "Moins de 0,5 mille",
     "0,5 à 3 milles",
     "3 à 12 milles",
-    "Au-delà de 12 milles",
+    "12 à 200 milles",
+    "Plus de 200 milles (opérations lointaines)",
 ]
 
 
