@@ -7,6 +7,7 @@ from src.components.messages import creer_bandeau_messages
 from src.utils.messages import (
     Message,
     formater,
+    message_medical_mer,
     messages_conditions,
     messages_consequences,
     messages_duree,
@@ -111,3 +112,18 @@ def test_messages_evolution_sans_rupture() -> None:
     """Pas de message de prudence sur une période sans rupture de saisie."""
     donnees = pd.DataFrame({"annee": [2011] * 100 + [2017] * 120})
     assert len(messages_evolution(donnees)) == 2
+
+
+def test_message_medical_mer() -> None:
+    """Part médicale par mer très forte comparée à la mer calme, et part des îles."""
+    calme = pd.DataFrame({"famille": ["Médical"] * 10 + ["Avarie ou panne"] * 90,
+                          "evenement": ["Problème médical"] * 100})
+    forte = pd.DataFrame({
+        "famille": ["Médical"] * 40 + ["Avarie ou panne"] * 60,
+        "evenement": ["Transport sanitaire île-continent"] * 10 + ["Problème médical"] * 90,
+    })
+    message = message_medical_mer(calme, forte)
+    assert message is not None
+    assert message.titre == "Mer forte : part médicale × 4,0"
+    assert "40 % des opérations sont médicales, contre 10 %" in message.texte
+    assert message_medical_mer(forte, calme) is None

@@ -25,6 +25,9 @@ TONS_MESSAGES = ("info", "alerte", "grave")
 
 # En dessous de cet effectif, un message ne serait pas fiable : il n'est pas affiché.
 EFFECTIF_MINIMAL_MESSAGE = 100
+FAMILLE_MEDICALE = "Médical"
+# Événement le plus fréquent parmi les urgences médicales par mer très forte.
+TRANSPORT_ILES = "Transport sanitaire île-continent"
 
 
 @dataclass(frozen=True)
@@ -117,7 +120,7 @@ def _famille_la_plus_saisonniere(
 
 
 def messages_conditions(donnees: pd.DataFrame) -> list[Message]:
-    """Messages de l'onglet « Conditions » : mer forte, vent fort, données notées."""
+    """Messages de l'onglet « Conditions » : mortalité, accidents, urgences médicales."""
     messages: list[Message] = []
     calme, tres_forte = next(iter(CLASSES_MER)), list(CLASSES_MER)[-1]
     mer_calme = donnees[donnees["classe_mer"] == calme]
@@ -152,16 +155,34 @@ def messages_conditions(donnees: pd.DataFrame) -> list[Message]:
                     "alerte",
                 )
             )
-    if len(donnees) >= EFFECTIF_MINIMAL_MESSAGE:
-        renseigne = part_en_pourcent(donnees["classe_vent"].notna())
-        messages.append(
-            Message(
-                "Des conditions pas toujours notées",
-                f"La force du vent est renseignée pour {formater(renseigne)} % des opérations "
-                "sélectionnées : les graphiques portent sur celles-ci.",
-            )
-        )
+    medical = message_medical_mer(mer_calme, mer_forte)
+    if medical is not None:
+        messages.append(medical)
     return messages
+
+
+def message_medical_mer(mer_calme: pd.DataFrame, mer_forte: pd.DataFrame) -> Message | None:
+    """Part des opérations médicales par mer très forte, comparée à la mer calme."""
+    if min(len(mer_calme), len(mer_forte)) < EFFECTIF_MINIMAL_MESSAGE:
+        return None
+    part_forte = part_en_pourcent(mer_forte["famille"].eq(FAMILLE_MEDICALE))
+    part_calme = part_en_pourcent(mer_calme["famille"].eq(FAMILLE_MEDICALE))
+    if not 0 < part_calme < part_forte:
+        return None
+    medicales = mer_forte[mer_forte["famille"] == FAMILLE_MEDICALE]
+    texte = (
+        f"Par mer très forte, {formater(part_forte)} % des opérations sont médicales, "
+        f"contre {formater(part_calme)} % par mer calme."
+    )
+    if len(medicales) >= EFFECTIF_MINIMAL_MESSAGE:
+        iles = part_en_pourcent(medicales["evenement"].eq(TRANSPORT_ILES))
+        texte += (
+            f" {formater(iles)} % de ces urgences sont des transports sanitaires entre "
+            "une île et le continent."
+        )
+    return Message(
+        f"Mer forte : part médicale × {formater(part_forte / part_calme, 1)}", texte, "alerte"
+    )
 
 
 def _taux_par_famille(donnees: pd.DataFrame, colonnes: list[str], pour: int) -> pd.Series:
