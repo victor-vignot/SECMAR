@@ -52,8 +52,12 @@ Pour forcer un nouveau téléchargement, supprimer d'abord les CSV de `data/raw/
   (tout, métropole, outre-mer). Ils s'appliquent à toute la page.
 - **Indicateurs clés** : opérations, personnes secourues, blessées, décédées,
   durée médiane d'une opération.
-- **Carte** : chaque point est une opération ; cliquer sur une famille dans la
-  légende pour l'afficher ou la masquer.
+- **Carte** : chaque point est une opération ; la survoler affiche son détail
+  (type d'événement, CROSS, mois, personnes concernées, distance, durée). Le
+  sélecteur en haut à droite colore les points par famille ou par type
+  d'événement précis ; choisir une famille dans les filtres détaille alors ses
+  types. La carte se cadre sur la sélection ; molette pour zoomer, clic sur la
+  légende pour afficher ou masquer une catégorie.
 - **Six onglets d'analyse** : Quand ?, Conditions, Conséquences, Durée et
   distance, Où ?, Évolution. Chaque onglet commence par trois messages à
   retenir, recalculés avec les filtres. Survoler un graphique affiche le
@@ -131,6 +135,11 @@ Corrections de libellés : CROSS « Adge » → « Agde », département « Réu
   les 3 316 positions (0, 0) et les 54 941 opérations déjà sans position, elles
   portent à 102 669 (26 %) le nombre d'opérations absentes de la carte.
 - Les évacuations sanitaires sont presque toutes antérieures à 2021 (ancien système).
+- 3 935 opérations de 2005-2025 n'ont pas de type d'événement (« Non renseigné ») :
+  elles comptent dans les indicateurs mais sont écartées des analyses et de la carte.
+- Environ 4 % des opérations de métropole sont à plus de 200 milles des côtes
+  (surtout des alertes relayées depuis l'étranger par Gris-Nez) : elles forment
+  une classe de distance à part, pour ne pas fausser la comparaison avec le large proche.
 - Les données décrivent les opérations déclenchées, pas l'exposition au risque :
   il y a davantage de monde en mer l'été et par beau temps.
 
@@ -247,47 +256,52 @@ avertissement émis pendant les tests les fait échouer.
 
 ## Rapport d'analyse
 
-Période 2005-2025, tous périmètres : 250 726 opérations. Les messages à retenir
-affichés en tête de chaque onglet recalculent ces constats pour la sélection
-choisie dans les filtres.
+Période 2005-2025, tous périmètres : 250 726 opérations, dont 246 791 avec un
+type d'événement renseigné, sur lesquelles portent les analyses. Les messages à
+retenir affichés en tête de chaque onglet recalculent ces constats pour la
+sélection choisie dans les filtres.
 
 **Quand ?** L'activité est très estivale : août concentre 18 % des opérations
-de l'année (contre 8 % si elles étaient réparties également) et l'été 43 %,
+de l'année (contre 8 % si elles étaient réparties également) et l'été 44 %,
 contre 14 % pour l'hiver. Baignade et loisirs est la famille la plus
 saisonnière (7,8 fois plus d'opérations en août qu'en janvier). En
 Méditerranée, 56 % des opérations ont lieu l'été, contre 36 % en Manche - mer
 du Nord ; en outre-mer, les quatre saisons pèsent chacune environ un quart.
 
 **Conditions.** Par vent faible (0-3 Beaufort), les avaries et pannes dominent
-(33 % des opérations). Par vent de 8 et plus, leur part tombe à 19 % au profit
-des accidents de navire (20 %, contre 13 % par vent faible) et des difficultés
+(34 % des opérations). Par vent de 8 et plus, leur part tombe à 20 % au profit
+des accidents de navire (20 %, contre 14 % par vent faible) et des difficultés
 de navigation (16 %). La mer pèse sur la gravité : par mer très forte,
-20 opérations sur 1 000 comptent un décès ou un disparu, deux fois plus que par
-mer calme (10).
+21 opérations sur 1 000 comptent un décès ou un disparu, deux fois plus que par
+mer calme (10). Elle pèse aussi sur la nature des secours : la part des
+opérations médicales double, de 9 % par mer calme à 18 % par mer très forte, et
+près d'une de ces urgences sur quatre (24 %) est alors un transport sanitaire
+entre une île et le continent, quand les liaisons habituelles ne passent plus.
 
 **Conséquences.** Les opérations « personne à la mer ou disparue » sont de loin
 les plus meurtrières : 240 décès ou disparus pour 1 000 opérations, contre 60
 pour la baignade et les loisirs, la famille suivante. Les blessés se
 concentrent dans les opérations médicales (51 blessés pour 100 opérations).
-Au total, 7,9 % des opérations font au moins une victime.
+Au total, 8,0 % des opérations font au moins une victime.
 
 **Durée et distance.** La durée médiane varie peu avec la météo (1,8 h à 2,6 h),
 mais les opérations longues se multiplient : par mer très forte, une opération
-sur dix dure plus de 21 h, contre 7 h par mer calme. En métropole, 22 % des
+sur dix dure plus de 20 h, contre 7 h par mer calme. En métropole, 22 % des
 opérations ont lieu au trait de côte, 66 % à moins d'un mille et 78 % à moins
-de trois milles ; seules 13 % se déroulent au-delà de 12 milles, mais c'est
-là que la mortalité est la plus forte (24 décès ou disparus pour 1 000
-opérations).
+de trois milles. La mortalité la plus forte est au trait de côte (14 décès ou
+disparus pour 1 000 opérations : rochers, plages, ports), au même niveau que
+le large de 12 à 200 milles (14). Les opérations à plus de 200 milles (4 %),
+surtout des alertes relayées depuis l'étranger, ont un profil à part (47).
 
 **Où ?** Étel coordonne 23 % des opérations. Le profil de Gris-Nez
 (Pas-de-Calais) se distingue nettement : la sûreté et les migrations y
-représentent 21 % de l'activité, contre 3 % ailleurs. L'outre-mer est la zone
+représentent 22 % de l'activité, contre 3 % ailleurs. L'outre-mer est la zone
 la plus grave (22 opérations sur 1 000 avec décès ou disparus, contre 8 à 11
 sur les façades métropolitaines) ; la Méditerranée a la plus forte part
 d'opérations avec blessés.
 
 **Évolution.** L'activité a été multipliée par 2,1 entre 2005 (7 782 opérations)
-et 2025 (16 322), avec un record en 2022 (17 094). Une partie des variations
+et 2025 (16 193), avec un record en 2022 (16 971). Une partie des variations
 vient des deux ruptures de saisie (2009-2010 et 2019-2021) : les comparaisons
 qui les traversent doivent être lues avec prudence.
 
@@ -302,6 +316,11 @@ ils suggèrent néanmoins des priorités :
   plus d'une opération sur cinq s'y termine par un décès ou un disparu.
 - **Anticiper les opérations longues par mer forte** (relèves d'équipage,
   moyens aériens), la durée des cas difficiles triplant.
+- **Prévoir les évacuations médicales des îles par gros temps** : par mer très
+  forte, la part médicale double et un quart de ces urgences sont des
+  transports sanitaires île-continent.
+- **Ne pas sous-estimer le bord de mer** : au trait de côte, la mortalité par
+  opération est aussi forte qu'au large.
 - **Cibler la plaisance de proximité** : deux tiers des opérations ont lieu à
   moins d'un mille, là où l'entretien du moteur et l'équipement de base
   (gilet, moyen d'appel) évitent la plupart des avaries.
