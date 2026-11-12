@@ -336,4 +336,5 @@ _Déclaration des auteurs : à rédiger._
 
 Toute ligne non déclarée ci-dessus est réputée être produite par les auteurs du projet.
 
-Auteurs : _à compléter (noms et adresses ESIEE)._
+Auteurs : Victor VIGNOT <victor.vignot@edu.esiee.fr> / Matis GONIDEC--RDISSI <matis.gonidec--rdissi@edu.esiee.fr>
+
