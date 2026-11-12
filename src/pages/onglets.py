@@ -82,7 +82,11 @@ ONGLETS: list[Onglet] = [
         "Quelles conditions de vent et de mer accompagnent chaque type d'événement ?",
         graphiques=[
             Graphique(conditions.figure_vent_famille, note=NOTE_FAMILLES),
-            Graphique(conditions.figure_mer_famille, note=NOTE_OBSERVATION),
+            Graphique(
+                conditions.figure_mer_famille,
+                note="Ligne encadrée : la part des urgences médicales augmente avec l'état "
+                "de la mer. " + NOTE_OBSERVATION,
+            ),
             Graphique(
                 conditions.figure_meteo_gravite, pleine_largeur=True,
                 note="Vent et mer ne sont renseignés que pour environ 70 % des opérations.",

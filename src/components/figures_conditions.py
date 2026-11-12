@@ -5,7 +5,9 @@ import plotly.graph_objects as go
 
 from config import GRAVITES
 from src.components.graphiques import TextesFigure, carte_chaleur, formater_effectif
+from src.components.theme import COULEUR_ACCENT
 from src.utils.aggregations import profil_croise, taux_par_cases
+from src.utils.messages import FAMILLE_MEDICALE
 
 LIBELLES = {
     "classe_vent": "Force du vent (échelle de Beaufort)",
@@ -36,9 +38,18 @@ def figure_vent_famille(donnees: pd.DataFrame) -> go.Figure:
 
 def figure_mer_famille(donnees: pd.DataFrame) -> go.Figure:
     """État de la mer × famille d'événements."""
-    return _profil_meteo_famille(
+    figure = _profil_meteo_famille(
         donnees, "classe_mer", "Quels événements selon l'état de la mer ?"
     )
+    familles = list(figure.data[0].y) if figure.data else []
+    if FAMILLE_MEDICALE in familles:
+        # Ligne encadrée : la part médicale augmente avec l'état de la mer.
+        rang = familles.index(FAMILLE_MEDICALE)
+        figure.add_shape(
+            type="rect", x0=-0.5, x1=len(figure.data[0].x) - 0.5, y0=rang - 0.5, y1=rang + 0.5,
+            line={"color": COULEUR_ACCENT, "width": 2.5},
+        )
+    return figure
 
 
 def figure_meteo_gravite(donnees: pd.DataFrame) -> go.Figure:
