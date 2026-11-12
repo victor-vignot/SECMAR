@@ -42,7 +42,6 @@ def _profil_territoire(
     )
     figure = carte_chaleur(pourcentages, effectifs, textes)
     figure.update_layout(height=max(380, 34 * len(pourcentages) + 160))
-    figure.update_xaxes(tickangle=-30)
     return figure
 
 

@@ -22,6 +22,8 @@ from src.components.theme import (
 
 # Au-delà de cette longueur, le sous-titre passe sur deux lignes (sinon il est coupé).
 LARGEUR_SOUS_TITRE = 85
+# Longueur maximale d'une ligne de libellé sous une carte de chaleur.
+LARGEUR_LIBELLE = 13
 
 # Marge laissée après la plus grande valeur pour que son étiquette reste visible.
 MARGE_ETIQUETTES = 1.18
@@ -97,7 +99,12 @@ def carte_chaleur(
             ygap=2,
         )
     )
-    figure.update_xaxes(title=textes.libelle_x, side="bottom")
+    colonnes = [str(c) for c in valeurs.columns]
+    # Libellés longs coupés en lignes : ils restent horizontaux, donc lisibles.
+    figure.update_xaxes(
+        title=textes.libelle_x, side="bottom", tickangle=0, tickvals=colonnes,
+        ticktext=["<br>".join(textwrap.wrap(c, LARGEUR_LIBELLE)) for c in colonnes],
+    )
     figure.update_yaxes(title=textes.libelle_y, autorange="reversed")
     return appliquer_charte(figure, textes)
 

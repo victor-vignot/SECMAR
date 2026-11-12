@@ -93,3 +93,11 @@ def test_barres_groupees_une_serie_par_ligne() -> None:
     valeurs = pd.DataFrame({"Zone A": [5.0, 1.0]}, index=["Blessés", "Décès"])
     figure = barres_groupees(valeurs, TEXTES, {})
     assert [trace.name for trace in figure.data] == ["Blessés", "Décès"]
+
+
+def test_carte_chaleur_libelles_horizontaux() -> None:
+    """Les libellés longs sont coupés en lignes et restent horizontaux."""
+    valeurs = pd.DataFrame({"Fausse alerte ou situation indéterminée": [40.0]}, index=["Été"])
+    figure = carte_chaleur(valeurs, valeurs, TextesFigure("Titre", "", "x", "y"))
+    assert figure.layout.xaxis.tickangle == 0
+    assert "<br>" in figure.layout.xaxis.ticktext[0]
