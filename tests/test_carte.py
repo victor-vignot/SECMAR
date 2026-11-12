@@ -43,6 +43,15 @@ def test_points_sans_famille_non_dessines(echantillon: pd.DataFrame) -> None:
     assert len(carte.positions_valides(donnees)) == len(donnees) - 10
 
 
+def test_mode_type_precis(echantillon: pd.DataFrame) -> None:
+    """Mode « type précis » : au plus 8 types, les autres regroupés."""
+    donnees = echantillon.assign(evenement=[f"Type {i % 12}" for i in range(len(echantillon))])
+    figure = carte.creer_carte(donnees, carte.MODE_EVENEMENT)
+    noms = [trace.name for trace in figure.data]
+    assert len(noms) == carte.NOMBRE_TYPES_CARTE + 1
+    assert noms[-1].startswith(carte.AUTRES_TYPES)
+
+
 def test_legende_avec_effectifs_reels(echantillon: pd.DataFrame) -> None:
     """La légende donne l'effectif de chaque famille dans la sélection."""
     figure = carte.creer_carte(echantillon)

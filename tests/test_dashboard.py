@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 from dash import html
 
+from src.components.carte import MODE_EVENEMENT, MODE_FAMILLE
 from src.pages.dashboard import construire_onglet
 from src.pages.onglets import ONGLETS, ONGLETS_PAR_IDENTIFIANT, Onglet
 from src.utils.database import base_est_prete
@@ -27,16 +28,19 @@ def test_construction_de_chaque_onglet(onglet: Onglet, echantillon: pd.DataFrame
 
 @pytest.mark.skipif(not base_est_prete(), reason="base non construite")
 def test_application_complete() -> None:
-    """L'application se crée et ses deux callbacks répondent aux filtres."""
+    """L'application se crée et ses trois callbacks répondent aux filtres."""
     from main import creer_application  # pylint: disable=import-outside-toplevel
 
     app = creer_application()
     callbacks = [c["callback"].__wrapped__ for c in app.callback_map.values()]
-    assert len(callbacks) == 2
+    assert len(callbacks) == 3
     filtres = ([2015, 2020], "toutes", "toutes", "metropole")
     assert callbacks[0](*filtres)[0] != "N/D"
+    for mode in (MODE_FAMILLE, MODE_EVENEMENT):
+        carte, note = callbacks[1](mode, *filtres)
+        assert carte.data and note
     for onglet in ONGLETS:
-        assert callbacks[1](onglet.identifiant, *filtres)
+        assert callbacks[2](onglet.identifiant, *filtres)
 
 
 def test_onglet_sans_non_renseigne(echantillon: pd.DataFrame) -> None:

@@ -145,7 +145,7 @@ def construire_onglet(onglet: Onglet, donnees: pd.DataFrame) -> list[html.P | ht
     """Construit le contenu d'un onglet : question, messages à retenir, graphiques.
 
     Les opérations sans type d'événement (« Non renseigné ») restent dans les
-    indicateurs, mais pas dans les analyses : elles n'apprennent rien.
+    indicateurs et sur la carte, mais pas dans les analyses : elles n'apprennent rien.
     """
     non_renseignees = int((donnees["famille"] == FAMILLE_INCONNUE).sum())
     donnees = donnees[donnees["famille"] != FAMILLE_INCONNUE]
@@ -184,13 +184,11 @@ def enregistrer_callbacks(app: Dash) -> None:
         Output("kpi-blessees", "children"),
         Output("kpi-decedees", "children"),
         Output("kpi-duree", "children"),
-        Output("graphique-carte", "figure"),
-        Output("note-carte", "children"),
         *ENTREES_FILTRES,
     )
-    def mettre_a_jour_vue_generale(
+    def mettre_a_jour_indicateurs(
         periode: list[int], cross: str, famille: str, perimetre: str
-    ) -> tuple[str, str, str, str, str, go.Figure, str]:
+    ) -> tuple[str, str, str, str, str]:
         donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
         kpi = calculer_kpi(donnees)
         return (
@@ -199,9 +197,19 @@ def enregistrer_callbacks(app: Dash) -> None:
             formater_nombre(kpi["blessees"]),
             formater_nombre(kpi["decedees"]),
             formater_duree(kpi["duree_mediane"]),
-            creer_carte(donnees),
-            decrire_positions(donnees),
         )
+
+    @app.callback(
+        Output("graphique-carte", "figure"),
+        Output("note-carte", "children"),
+        Input("mode-carte", "value"),
+        *ENTREES_FILTRES,
+    )
+    def mettre_a_jour_carte(
+        mode: str, periode: list[int], cross: str, famille: str, perimetre: str
+    ) -> tuple[go.Figure, str]:
+        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        return creer_carte(donnees, mode), decrire_positions(donnees)
 
     @app.callback(
         Output("contenu-onglet", "children"),

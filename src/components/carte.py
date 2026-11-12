@@ -10,6 +10,23 @@ from config import MAX_POINTS_CARTE, NOMS_MOIS_LONGS
 from src.components.theme import COULEURS_FAMILLES, LAYOUT_GRAPHIQUE, STYLE_FOND_CARTE
 from src.utils.familles import FAMILLE_INCONNUE, ORDRE_FAMILLES
 
+# Deux façons de colorer les points, au choix de l'utilisateur.
+MODE_FAMILLE = "famille"
+MODE_EVENEMENT = "evenement"
+OPTIONS_MODE = [
+    {"label": "Par famille d'événements", "value": MODE_FAMILLE},
+    {"label": "Par type d'événement précis", "value": MODE_EVENEMENT},
+]
+
+# Mode « type précis » : les types les plus fréquents de la sélection, les autres regroupés.
+NOMBRE_TYPES_CARTE = 8
+AUTRES_TYPES = "Autres types"
+COULEURS_TYPES = [
+    "#1F4E79", "#E3B23C", "#B5442F", "#3C7A5A",
+    "#5B4B8A", "#7BA7C7", "#C9772B", "#7A1F1F",
+]
+COULEUR_AUTRES_TYPES = "#C5CCD3"
+
 # Cadrage : la carte s'ajuste sur le cœur de la sélection (on ignore 20 % de points excentrés).
 QUANTILES_CADRAGE = (0.1, 0.9)
 PART_METROPOLE_CADRAGE = 0.5
@@ -126,12 +143,23 @@ def cadrage(points: pd.DataFrame) -> tuple[dict[str, float], float]:
     return centre, round(zoom, 2)
 
 
-def creer_carte(donnees: pd.DataFrame) -> go.Figure:
-    """Carte des opérations, colorées par famille d'événements."""
+def _categories(points: pd.DataFrame, mode: str) -> tuple[pd.Series, list[str], dict[str, str]]:
+    """Catégorie de chaque point, ordre de la légende et couleurs."""
+    if mode == MODE_EVENEMENT:
+        frequents = points["evenement"].value_counts().index[:NOMBRE_TYPES_CARTE].tolist()
+        categorie = points["evenement"].where(points["evenement"].isin(frequents), AUTRES_TYPES)
+        couleurs = dict(zip(frequents, COULEURS_TYPES, strict=False))
+        couleurs[AUTRES_TYPES] = COULEUR_AUTRES_TYPES
+        return categorie, [*frequents, AUTRES_TYPES], couleurs
+    familles = [f for f in ORDRE_FAMILLES if f != FAMILLE_INCONNUE]
+    return points["famille"].astype(str), familles, COULEURS_FAMILLES
+
+
+def creer_carte(donnees: pd.DataFrame, mode: str = MODE_FAMILLE) -> go.Figure:
+    """Carte des opérations, colorées par famille ou par type d'événement précis."""
     valides = positions_valides(donnees)
     points = preparer_points_carte(donnees)
-    categorie = valides["famille"].astype(str)
-    ordre = [f for f in ORDRE_FAMILLES if f != FAMILLE_INCONNUE]
+    categorie, ordre, couleurs = _categories(valides, mode)
     effectifs = categorie.value_counts()
     categorie = categorie.loc[points.index]
     details = details_operations(points)
@@ -147,7 +175,7 @@ def creer_carte(donnees: pd.DataFrame) -> go.Figure:
                 mode="markers",
                 # Effectif réel de la sélection, pas celui de l'échantillon dessiné.
                 name=f"{nom} ({int(effectifs.get(nom, 0)):_})".replace("_", " "),
-                marker={"size": 7, "opacity": 0.8, "color": COULEURS_FAMILLES[nom]},
+                marker={"size": 7, "opacity": 0.8, "color": couleurs.get(nom, "#9AA5B1")},
                 customdata=details[masque].to_numpy(),
                 hovertemplate=INFOBULLE,
             )
@@ -165,23 +193,36 @@ def creer_carte(donnees: pd.DataFrame) -> go.Figure:
             "orientation": "h", "x": 0, "y": -0.01, "yanchor": "top",
             "itemsizing": "constant", "font": {"size": 12},
         },
-        # Le zoom choisi à la main est gardé tant que les filtres ne changent pas.
-        uirevision=str(len(points)),
+        # Le zoom choisi à la main est gardé tant que filtres et mode ne changent pas.
+        uirevision=f"{mode}-{len(points)}",
     )
     return figure
 
 
 def creer_section_carte() -> html.Section:
-    """Construit la section contenant la carte."""
+    """Construit la section contenant la carte et le choix de coloration."""
     return html.Section(
         className="panneau panneau-carte",
         children=[
-            html.H2("Où ont lieu les opérations ?", className="titre-section"),
+            html.Div(
+                className="entete-carte",
+                children=[
+                    html.H2("Où ont lieu les opérations ?", className="titre-section"),
+                    dcc.RadioItems(
+                        id="mode-carte",
+                        options=OPTIONS_MODE,
+                        value=MODE_FAMILLE,
+                        className="bascule",
+                    ),
+                ],
+            ),
             dcc.Graph(id="graphique-carte", config={"displayModeBar": False,
                                                      "scrollZoom": True}),
             html.P(id="note-carte", className="legende legende-forte"),
             html.P(
                 "Survoler un point pour le détail de l'opération ; molette pour zoomer. "
+                "En mode « type précis », choisir une famille dans les filtres détaille ses "
+                "types d'événements. "
                 f"Au plus {MAX_POINTS_CARTE:_} points tirés au hasard, pour garder la carte "
                 "fluide. Cliquer sur un élément de la légende pour l'afficher ou le "
                 "masquer.".replace("_", " "),
