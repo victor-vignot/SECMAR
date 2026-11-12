@@ -79,7 +79,8 @@ def figure_distance_cote(donnees: pd.DataFrame) -> go.Figure:
     )
     # Échelle logarithmique : les opérations proches du bord écrasent sinon
     # toutes les autres classes.
-    figure.update_yaxes(type="log", dtick=1)
+    # Graduations écrites en entier (« 10 000 » plutôt que « 10k »).
+    figure.update_yaxes(type="log", dtick=1, exponentformat="none", tickformat=",d")
     return figure
 
 

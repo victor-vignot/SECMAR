@@ -26,3 +26,9 @@ def test_gravite_distance_dans_l_ordre_des_classes() -> None:
         "3 à 12 milles", "0,5 à 3 milles",
         "Moins de 0,5 mille", "Au trait de côte",
     ]
+
+
+def test_histogramme_graduations_en_entier(echantillon: pd.DataFrame) -> None:
+    """L'axe logarithmique écrit « 10 000 » et non « 10k »."""
+    figure = figures_duree.figure_distance_cote(echantillon)
+    assert figure.layout.yaxis.exponentformat == "none"
