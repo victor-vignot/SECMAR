@@ -52,3 +52,15 @@ def test_famille_apparue_en_cours_de_periode() -> None:
     )
     figure = figures_evolution.figure_bulles_animees(donnees)
     assert {trace.name for trace in figure.data} == {"Médical", "Sûreté et migrations"}
+
+
+def test_bulles_entieres_au_niveau_zero(grand_echantillon: pd.DataFrame) -> None:
+    """L'axe descend sous zéro pour montrer les bulles entières, sans graduation négative."""
+    figure = figures_evolution.figure_bulles_animees(grand_echantillon)
+    assert figure.layout.yaxis.range[0] == -figures_evolution.MARGE_BASSE_BULLES
+    assert min(figure.layout.yaxis.tickvals) == 0
+
+
+def test_graduations_positives() -> None:
+    """Environ cinq graduations rondes, de 0 jusqu'au-delà du maximum."""
+    assert figures_evolution.graduations_positives(470) == [0, 100, 200, 300, 400, 500]

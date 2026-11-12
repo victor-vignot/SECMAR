@@ -1,5 +1,7 @@
 """Figures de l'onglet « Évolution » : les opérations de 1985 à aujourd'hui."""
 
+import math
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -20,6 +22,8 @@ DUREE_IMAGE_MS = 700
 
 # Graduations lisibles pour l'axe logarithmique du nombre d'opérations.
 GRADUATIONS_LOG = [30, 100, 300, 1000, 3000, 10000]
+# Prolongement de l'axe vertical des bulles sous zéro (décès pour 1 000 opérations).
+MARGE_BASSE_BULLES = 30
 
 MESSAGE_DEUX_ANNEES = "Choisissez au moins deux années pour voir une évolution"
 
@@ -76,7 +80,8 @@ def figure_bulles_animees(donnees: pd.DataFrame) -> go.Figure:
         log_x=True,
         size_max=48,
         range_x=[evolution["operations"].min() * 0.8, evolution["operations"].max() * 1.3],
-        range_y=[0, evolution["taux_victimes"].max() * 1.1],
+        # Axe prolongé sous zéro : les bulles des familles peu meurtrières restent entières.
+        range_y=[-MARGE_BASSE_BULLES, evolution["taux_victimes"].max() * 1.1],
         hover_name="famille",
         labels={
             "operations": "Nombre d'opérations dans l'année (échelle log)",
@@ -101,6 +106,8 @@ def figure_bulles_animees(donnees: pd.DataFrame) -> go.Figure:
     for image in figure.frames:
         for trace in image.data:
             trace.marker.sizemin = 6
+    # Pas de graduation négative : le prolongement sous zéro ne sert qu'à l'affichage.
+    figure.update_yaxes(tickvals=graduations_positives(evolution["taux_victimes"].max()))
     figure.update_xaxes(tickvals=GRADUATIONS_LOG, ticktext=[f"{v:,}".replace(",", " ")
                                                             for v in GRADUATIONS_LOG])
     # Animation plus lente que celle par défaut, pour suivre les bulles.
@@ -130,3 +137,11 @@ def _completer_annees(evolution: pd.DataFrame, hors_champ: float) -> pd.DataFram
     # Une bulle de taille nulle n'est pas dessinée, même avec une taille minimale.
     complete["impliques"] = complete["impliques"].fillna(0).clip(lower=1)
     return complete
+
+
+def graduations_positives(maximum: float) -> list[float]:
+    """Graduations rondes de 0 au maximum (environ cinq), sans valeur négative."""
+    pas_bruts = maximum / 5 if maximum > 0 else 1
+    puissance = 10 ** math.floor(math.log10(pas_bruts))
+    pas = next(m * puissance for m in (1, 2, 5, 10) if m * puissance >= pas_bruts)
+    return [pas * i for i in range(int(maximum // pas) + 2)]
