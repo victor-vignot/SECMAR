@@ -32,3 +32,11 @@ def test_histogramme_graduations_en_entier(echantillon: pd.DataFrame) -> None:
     """L'axe logarithmique écrit « 10 000 » et non « 10k »."""
     figure = figures_duree.figure_distance_cote(echantillon)
     assert figure.layout.yaxis.exponentformat == "none"
+
+
+def test_famille_distance_lignes_a_100(echantillon: pd.DataFrame) -> None:
+    """Une ligne par famille, une colonne par classe de distance, chaque ligne à 100 %."""
+    figure = figures_duree.figure_famille_distance(echantillon)
+    lignes = pd.DataFrame(figure.data[0].z).sum(axis=1)
+    assert ((lignes - 100).abs() < 1e-6).all()
+    assert figure.data[0].x[0] == "Au trait de côte"

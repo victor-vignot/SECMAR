@@ -8,12 +8,15 @@ from src.components.graphiques import (
     TextesFigure,
     barres_horizontales,
     boites_quartiles,
+    carte_chaleur,
     figure_vide,
+    formater_effectif,
     histogramme,
 )
 from src.utils.aggregations import (
     classer_distance,
     indicateurs_par_groupe,
+    profil_croise,
     quartiles_par_groupe,
 )
 
@@ -104,3 +107,25 @@ def figure_gravite_distance(donnees: pd.DataFrame) -> go.Figure:
     return barres_horizontales(
         resume, ("classe_distance", "taux_victimes"), textes, ".0f", trier=False
     )
+
+
+def figure_famille_distance(donnees: pd.DataFrame) -> go.Figure:
+    """Où se produit chaque famille d'événements : répartition par distance à la côte."""
+    titre = "Quels événements, à quelle distance de la côte ?"
+    metropole = donnees.dropna(subset=["distance_cote_mn"])
+    if metropole.empty:
+        return figure_vide(titre, "Distance disponible uniquement pour la métropole")
+    travail = metropole.assign(
+        classe_distance=classer_distance(metropole["distance_cote_mn"])
+    )
+    tableau = profil_croise(travail, "famille", "classe_distance")
+    textes = TextesFigure(
+        titre,
+        "Métropole · chaque ligne = 100 % des opérations de la famille · nombre "
+        f"d'opérations au survol · {formater_effectif(int(tableau.totaux.sum()))} opérations",
+        "Distance à la côte",
+        "Famille d'événements",
+    )
+    figure = carte_chaleur(tableau.pourcentages.T, tableau.effectifs.T, textes)
+    figure.update_layout(height=520)
+    return figure

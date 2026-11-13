@@ -118,6 +118,12 @@ ONGLETS: list[Onglet] = [
                 duree.figure_distance_cote,
                 note="Distance fournie par l'administration, fiable en métropole uniquement.",
             ),
+            Graphique(
+                duree.figure_famille_distance,
+                pleine_largeur=True,
+                note="Lecture : chaque ligne va de la côte (à gauche) vers le large (à droite) ; "
+                "une case foncée indique où la famille se concentre.",
+            ),
             Graphique(duree.figure_gravite_distance, pleine_largeur=True),
         ],
         messages=messages_duree,
