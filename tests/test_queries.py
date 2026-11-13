@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from pydantic import ValidationError
 from sqlalchemy import Select
 
-from config import VALEUR_TOUTES
 from src.utils.database import base_est_prete, creer_archive, restaurer_archive
 from src.utils.queries import (
     PERIMETRE_METROPOLE,
@@ -28,14 +28,17 @@ def sql(requete: Select) -> str:
 
 def test_requete_sans_filtre() -> None:
     """Sans filtre, seule la période est filtrée."""
-    texte = sql(construire_requete(Filtres(2005, 2025)))
+    texte = sql(construire_requete(Filtres(annee_debut=2005, annee_fin=2025)))
     assert "annee BETWEEN 2005 AND 2025" in texte
     assert texte.count("AND") == 1
 
 
 def test_requete_avec_tous_les_filtres() -> None:
     """Chaque filtre ajoute une condition, avec la valeur en paramètre lié."""
-    requete = construire_requete(Filtres(2010, 2020, "Étel", "Médical", PERIMETRE_METROPOLE))
+    requete = construire_requete(Filtres(
+        annee_debut=2010, annee_fin=2020, cross="Étel", famille="Médical",
+        perimetre=PERIMETRE_METROPOLE,
+    ))
     texte = sql(requete)
     # « cross » est un mot réservé SQL : SQLAlchemy le met entre guillemets.
     assert "\"cross\" = 'Étel'" in texte and "famille = 'Médical'" in texte
@@ -46,9 +49,29 @@ def test_requete_avec_tous_les_filtres() -> None:
 def test_requete_avec_mois() -> None:
     """Le filtre des mois n'ajoute une condition que s'il restreint l'année."""
     assert "mois BETWEEN 6 AND 8" in sql(
-        construire_requete(Filtres(2010, 2020, mois_debut=6, mois_fin=8))
+        construire_requete(Filtres(annee_debut=2010, annee_fin=2020, mois_debut=6, mois_fin=8))
     )
-    assert "mois BETWEEN" not in sql(construire_requete(Filtres(2010, 2020)))
+    assert "mois BETWEEN" not in sql(construire_requete(Filtres(annee_debut=2010, annee_fin=2020)))
+
+
+@pytest.mark.parametrize(
+    "valeurs",
+    [
+        {"annee_debut": 2020, "annee_fin": 2010},
+        {"mois_debut": 13},
+        {"mois_debut": 9, "mois_fin": 6},
+        {"perimetre": "lune"},
+    ],
+)
+def test_filtres_invalides_refuses(valeurs: dict[str, int | str]) -> None:
+    """pydantic refuse une valeur hors bornes ou une période à l'envers."""
+    with pytest.raises(ValidationError):
+        Filtres(**valeurs)  # type: ignore[arg-type]
+
+
+def test_filtres_utilisables_en_cache() -> None:
+    """Deux filtres identiques sont égaux et ont le même hachage (clé du cache)."""
+    assert hash(Filtres(mois_debut=6)) == hash(Filtres(mois_debut=6))
 
 
 def test_kpi_sur_petit_tableau() -> None:
@@ -99,7 +122,7 @@ def test_restauration_ne_remplace_pas_une_base(tmp_path: Path) -> None:
 @pytest.mark.skipif(not BASE_PRETE, reason="base non construite")
 def test_resultats_identiques_a_l_ancien_dashboard() -> None:
     """Les KPI 2005-2025 sont ceux mesurés avant la refonte."""
-    donnees = charger_operations(Filtres(2005, 2025))
+    donnees = charger_operations(Filtres(annee_debut=2005, annee_fin=2025))
     kpi = calculer_kpi(donnees)
     assert kpi["operations"] == 250_726
     assert kpi["secourues"] == 187_939
@@ -110,5 +133,5 @@ def test_options_et_filtre_famille() -> None:
     """Les options viennent de la base et le filtre famille est respecté."""
     cross, familles = charger_options_filtres()
     assert "Étel" in cross and "Agde" in cross and "Adge" not in cross
-    donnees = charger_operations(Filtres(2005, 2025, VALEUR_TOUTES, familles[0]))
+    donnees = charger_operations(Filtres(annee_debut=2005, annee_fin=2025, famille=familles[0]))
     assert set(donnees["famille"].dropna()) == {familles[0]}

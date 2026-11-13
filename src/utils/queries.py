@@ -6,15 +6,17 @@ relire la base. Les requêtes sont construites avec le langage d'expressions
 de SQLAlchemy : les valeurs des filtres sont toujours des paramètres liés.
 """
 
-from dataclasses import dataclass
 from functools import lru_cache
 
 import pandas as pd
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import Select, column, select, table
 
 from config import (
     ANNEE_DEBUT_DEFAUT,
     ANNEE_FIN_DEFAUT,
+    ANNEE_MAX,
+    ANNEE_MIN,
     CLASSES_MER,
     CLASSES_VENT,
     GRAVITES,
@@ -75,17 +77,34 @@ ORDRES_CATEGORIES: dict[str, list[str]] = {
 }
 
 
-@dataclass(frozen=True)
-class Filtres:
-    """Valeurs sélectionnées dans le panneau de filtres."""
+# Valeurs possibles du filtre de périmètre (expression vérifiée par pydantic).
+MOTIF_PERIMETRE = f"^({PERIMETRE_TOUT}|{PERIMETRE_METROPOLE}|{PERIMETRE_OUTRE_MER})$"
 
-    annee_debut: int = ANNEE_DEBUT_DEFAUT
-    annee_fin: int = ANNEE_FIN_DEFAUT
+
+class Filtres(BaseModel):
+    """Valeurs sélectionnées dans le panneau de filtres, validées par pydantic.
+
+    Le modèle est figé (`frozen`) : il est hachable, donc utilisable comme clé
+    du cache de `charger_operations`. Une valeur hors bornes ou une période à
+    l'envers lève une `ValidationError` avant d'atteindre la base.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    annee_debut: int = Field(default=ANNEE_DEBUT_DEFAUT, ge=ANNEE_MIN, le=ANNEE_MAX)
+    annee_fin: int = Field(default=ANNEE_FIN_DEFAUT, ge=ANNEE_MIN, le=ANNEE_MAX)
     cross: str = VALEUR_TOUTES
     famille: str = VALEUR_TOUTES
-    perimetre: str = PERIMETRE_TOUT
-    mois_debut: int = MOIS_DEBUT_DEFAUT
-    mois_fin: int = MOIS_FIN_DEFAUT
+    perimetre: str = Field(default=PERIMETRE_TOUT, pattern=MOTIF_PERIMETRE)
+    mois_debut: int = Field(default=MOIS_DEBUT_DEFAUT, ge=1, le=12)
+    mois_fin: int = Field(default=MOIS_FIN_DEFAUT, ge=1, le=12)
+
+    @model_validator(mode="after")
+    def verifier_ordre(self) -> Filtres:
+        """Début avant fin, pour les années comme pour les mois."""
+        if self.annee_debut > self.annee_fin or self.mois_debut > self.mois_fin:
+            raise ValueError("le début doit précéder la fin")
+        return self
 
 
 def charger_options_filtres() -> tuple[list[str], list[str]]:

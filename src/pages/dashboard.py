@@ -35,8 +35,8 @@ def lire_filtres(
     annee_debut, annee_fin = periode
     mois_debut, mois_fin = sorted(mois)
     return Filtres(
-        int(annee_debut), int(annee_fin), cross, famille, perimetre,
-        int(mois_debut), int(mois_fin),
+        annee_debut=annee_debut, annee_fin=annee_fin, cross=cross, famille=famille,
+        perimetre=perimetre, mois_debut=mois_debut, mois_fin=mois_fin,
     )
 
 
