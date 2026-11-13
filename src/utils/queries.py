@@ -16,6 +16,8 @@ from config import (
     CLASSES_MER,
     CLASSES_VENT,
     GRAVITES,
+    MOIS_DEBUT_DEFAUT,
+    MOIS_FIN_DEFAUT,
     SAISONS,
     TABLE_CLEANED,
     VALEUR_TOUTES,
@@ -77,6 +79,8 @@ class Filtres:
     cross: str = VALEUR_TOUTES
     famille: str = VALEUR_TOUTES
     perimetre: str = PERIMETRE_TOUT
+    mois_debut: int = MOIS_DEBUT_DEFAUT
+    mois_fin: int = MOIS_FIN_DEFAUT
 
 
 def charger_options_filtres() -> tuple[list[str], list[str]]:
@@ -112,6 +116,9 @@ def construire_requete(filtres: Filtres) -> tuple[str, list[int | str]]:
     if filtres.famille != VALEUR_TOUTES:
         requete += " AND famille = ?"
         parametres.append(filtres.famille)
+    if (filtres.mois_debut, filtres.mois_fin) != (MOIS_DEBUT_DEFAUT, MOIS_FIN_DEFAUT):
+        requete += " AND mois BETWEEN ? AND ?"
+        parametres.extend([int(filtres.mois_debut), int(filtres.mois_fin)])
     if filtres.perimetre == PERIMETRE_METROPOLE:
         requete += " AND est_metropolitain = 1"
     elif filtres.perimetre == PERIMETRE_OUTRE_MER:

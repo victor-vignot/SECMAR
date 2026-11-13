@@ -47,6 +47,9 @@ ANNEE_MAX = 2025
 # Période sélectionnée à l'ouverture du tableau de bord.
 ANNEE_DEBUT_DEFAUT = 2005
 ANNEE_FIN_DEFAUT = 2025
+# Mois sélectionnés par défaut : toute l'année.
+MOIS_DEBUT_DEFAUT = 1
+MOIS_FIN_DEFAUT = 12
 
 # --- Seuils de nettoyage -------------------------------------------------------
 

@@ -36,6 +36,14 @@ def test_requete_avec_tous_les_filtres() -> None:
     assert parametres == [2010, 2020, "Étel", "Médical"]
 
 
+def test_requete_avec_mois() -> None:
+    """Le filtre des mois n'ajoute une condition que s'il restreint l'année."""
+    requete, parametres = construire_requete(Filtres(2010, 2020, mois_debut=6, mois_fin=8))
+    assert "mois BETWEEN ? AND ?" in requete
+    assert parametres == [2010, 2020, 6, 8]
+    assert "mois" not in construire_requete(Filtres(2010, 2020))[0].split("WHERE")[1]
+
+
 def test_kpi_sur_petit_tableau() -> None:
     """Les KPI additionnent les comptages et prennent la durée médiane."""
     donnees = pd.DataFrame({
