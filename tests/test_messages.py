@@ -127,3 +127,11 @@ def test_message_medical_mer() -> None:
     assert message.titre == "Mer forte : part médicale × 4,0"
     assert "40 % des opérations sont médicales, contre 10 %" in message.texte
     assert message_medical_mer(forte, calme) is None
+
+
+def test_messages_quand_sur_quelques_mois(echantillon: pd.DataFrame) -> None:
+    """Sur juin-août : référence sur 3 mois, pas de comparaison avec l'hiver."""
+    ete = echantillon[echantillon["mois"].between(6, 8)]
+    messages = messages_quand(ete)
+    assert len(messages) == 1
+    assert "sur les 3 mois choisis" in messages[0].texte

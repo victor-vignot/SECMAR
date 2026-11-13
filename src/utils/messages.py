@@ -72,23 +72,34 @@ def messages_quand(donnees: pd.DataFrame) -> list[Message]:
     if len(donnees) < EFFECTIF_MINIMAL_MESSAGE:
         return []
     par_mois = donnees["mois"].value_counts()
-    mois_pic = int(par_mois.idxmax())
-    part_pic = par_mois.max() / len(donnees) * 100
-    messages = [
-        Message(
-            f"{NOMS_MOIS_LONGS[mois_pic].capitalize()}, le mois le plus chargé",
-            f"{formater(part_pic)} % des opérations de la sélection ont lieu en "
-            f"{NOMS_MOIS_LONGS[mois_pic]}, contre 8 % si elles étaient réparties "
-            "également sur l'année.",
-            "alerte",
-        ),
-        Message(
-            "L'été concentre l'activité",
-            f"{formater(part_en_pourcent(donnees['saison'].eq('Été')))} % des opérations "
-            "ont lieu en été (juin à août), contre "
-            f"{formater(part_en_pourcent(donnees['saison'].eq('Hiver')))} % en hiver.",
-        ),
-    ]
+    nombre_mois = len(par_mois)
+    messages = []
+    if nombre_mois >= 2:
+        mois_pic = int(par_mois.idxmax())
+        # Référence : la part d'un mois si l'activité était répartie également.
+        reference = (
+            "sur l'année" if nombre_mois == 12 else f"sur les {nombre_mois} mois choisis"
+        )
+        messages.append(
+            Message(
+                f"{NOMS_MOIS_LONGS[mois_pic].capitalize()}, le mois le plus chargé",
+                f"{formater(par_mois.max() / len(donnees) * 100)} % des opérations de la "
+                f"sélection ont lieu en {NOMS_MOIS_LONGS[mois_pic]}, contre "
+                f"{formater(100 / nombre_mois)} % si elles étaient réparties également "
+                f"{reference}.",
+                "alerte",
+            )
+        )
+    if {"Été", "Hiver"} <= set(donnees["saison"].astype(str)):
+        # Comparaison été / hiver, seulement si les deux saisons sont dans la sélection.
+        messages.append(
+            Message(
+                "L'été concentre l'activité",
+                f"{formater(part_en_pourcent(donnees['saison'].eq('Été')))} % des opérations "
+                "ont lieu en été (juin à août), contre "
+                f"{formater(part_en_pourcent(donnees['saison'].eq('Hiver')))} % en hiver.",
+            )
+        )
     saisonniere = _famille_la_plus_saisonniere(donnees)
     if saisonniere is not None:
         famille, rapport, pic, creux = saisonniere
