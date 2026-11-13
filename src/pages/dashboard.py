@@ -71,7 +71,7 @@ def creer_section_kpi() -> html.Section:
                             "Total déclaré", "secondaire"),
             creer_carte_kpi("Personnes blessées", "kpi-blessees",
                             "Total déclaré", "alerte"),
-            creer_carte_kpi("Personnes décédées", "kpi-decedees",
+            creer_carte_kpi("Décédées ou disparues", "kpi-decedees",
                             "Total déclaré", "grave"),
             creer_carte_kpi("Durée médiane", "kpi-duree",
                             "Opérations de moins de 72 h", "secondaire"),

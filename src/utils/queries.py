@@ -156,6 +156,9 @@ def calculer_kpi(donnees: pd.DataFrame) -> dict[str, float | None]:
         "operations": float(len(donnees)),
         "secourues": float(donnees["personnes_secourues"].sum()),
         "blessees": float(donnees["personnes_blessees"].sum()),
-        "decedees": float(donnees["personnes_decedees"].sum()),
+        # Décès et disparitions ensemble, comme dans toutes les analyses.
+        "decedees": float(
+            donnees["personnes_decedees"].sum() + donnees["personnes_disparues"].sum()
+        ),
         "duree_mediane": None if pd.isna(duree_mediane) else float(duree_mediane),
     }

@@ -49,12 +49,14 @@ def test_kpi_sur_petit_tableau() -> None:
     donnees = pd.DataFrame({
         "personnes_secourues": [1, 2],
         "personnes_blessees": [0, 1],
-        "personnes_decedees": [0, 0],
+        "personnes_decedees": [0, 1],
+        "personnes_disparues": [2, 0],
         "duree_heures": [1.0, 3.0],
     })
     kpi = calculer_kpi(donnees)
     assert kpi["operations"] == 2
     assert kpi["secourues"] == 3
+    assert kpi["decedees"] == 3
     assert kpi["duree_mediane"] == pytest.approx(2.0)
 
 
