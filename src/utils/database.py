@@ -5,7 +5,11 @@ import shutil
 import sqlite3
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
+from functools import lru_cache
 from pathlib import Path
+
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.pool import NullPool
 
 from config import DB_ARCHIVE_PATH, DB_PATH, TABLE_CLEANED, TABLE_RAW
 
@@ -25,6 +29,17 @@ def ouvrir_connexion(
     uri = f"file:{chemin_base.as_posix()}?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as connexion:
         yield connexion
+
+
+@lru_cache(maxsize=4)
+def creer_moteur(chemin_base: Path = DB_PATH) -> Engine:
+    """Moteur SQLAlchemy en lecture seule sur la base SQLite.
+
+    `NullPool` ouvre une connexion par requête et la ferme aussitôt : SQLite est
+    un simple fichier, garder des connexions ouvertes n'apporte rien.
+    """
+    url = f"sqlite:///file:{chemin_base.as_posix()}?mode=ro&uri=true"
+    return create_engine(url, poolclass=NullPool)
 
 
 def base_est_prete(chemin_base: Path = DB_PATH) -> bool:

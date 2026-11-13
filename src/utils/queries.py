@@ -1,14 +1,16 @@
-"""Requêtes SQLite utilisées par le tableau de bord.
+"""Requêtes SQLite utilisées par le tableau de bord, écrites avec SQLAlchemy.
 
 Une seule requête filtrée lit la table `cleaned` ; son résultat est mis en
 cache pour que tous les graphiques d'un même filtrage le réutilisent sans
-relire la base.
+relire la base. Les requêtes sont construites avec le langage d'expressions
+de SQLAlchemy : les valeurs des filtres sont toujours des paramètres liés.
 """
 
 from dataclasses import dataclass
 from functools import lru_cache
 
 import pandas as pd
+from sqlalchemy import Select, column, select, table
 
 from config import (
     ANNEE_DEBUT_DEFAUT,
@@ -22,7 +24,7 @@ from config import (
     TABLE_CLEANED,
     VALEUR_TOUTES,
 )
-from src.utils.database import ouvrir_connexion
+from src.utils.database import creer_moteur
 from src.utils.familles import ORDRE_FAMILLES
 
 # Valeurs du filtre de périmètre géographique.
@@ -60,6 +62,9 @@ COLONNES_DASHBOARD = [
     "gravite",
 ]
 
+# Description de la table `cleaned` pour SQLAlchemy (seules les colonnes utiles).
+OPERATIONS = table(TABLE_CLEANED, *(column(nom) for nom in COLONNES_DASHBOARD))
+
 # Ordre logique des catégories, utilisé par les graphiques.
 ORDRES_CATEGORIES: dict[str, list[str]] = {
     "famille": ORDRE_FAMILLES,
@@ -85,45 +90,38 @@ class Filtres:
 
 def charger_options_filtres() -> tuple[list[str], list[str]]:
     """Retourne les CROSS et les familles disponibles dans la base."""
-    with ouvrir_connexion() as connexion:
-        cross = pd.read_sql_query(
-            f"SELECT DISTINCT cross FROM {TABLE_CLEANED} "
-            "WHERE cross IS NOT NULL ORDER BY cross",
-            connexion,
-        )["cross"].tolist()
-        familles_presentes = set(
-            pd.read_sql_query(
-                f"SELECT DISTINCT famille FROM {TABLE_CLEANED}", connexion
-            )["famille"]
-        )
+    colonnes = OPERATIONS.c
+    with creer_moteur().connect() as connexion:
+        cross = list(connexion.scalars(
+            select(colonnes.cross)
+            .distinct()
+            .where(colonnes.cross.is_not(None))
+            .order_by(colonnes.cross)
+        ))
+        familles_presentes = set(connexion.scalars(select(colonnes.famille).distinct()))
     familles = [f for f in ORDRE_FAMILLES if f in familles_presentes]
     return cross, familles
 
 
-def construire_requete(filtres: Filtres) -> tuple[str, list[int | str]]:
-    """Construit la requête SQL paramétrée correspondant aux filtres."""
-    requete = (
-        f"SELECT {', '.join(COLONNES_DASHBOARD)} FROM {TABLE_CLEANED} "
-        "WHERE annee BETWEEN ? AND ?"
+def construire_requete(filtres: Filtres) -> Select:
+    """Construit la requête SQLAlchemy correspondant aux filtres."""
+    colonnes = OPERATIONS.c
+    requete = select(OPERATIONS).where(
+        colonnes.annee.between(int(filtres.annee_debut), int(filtres.annee_fin))
     )
-    parametres: list[int | str] = [
-        int(filtres.annee_debut),
-        int(filtres.annee_fin),
-    ]
     if filtres.cross != VALEUR_TOUTES:
-        requete += " AND cross = ?"
-        parametres.append(filtres.cross)
+        requete = requete.where(colonnes.cross == filtres.cross)
     if filtres.famille != VALEUR_TOUTES:
-        requete += " AND famille = ?"
-        parametres.append(filtres.famille)
+        requete = requete.where(colonnes.famille == filtres.famille)
     if (filtres.mois_debut, filtres.mois_fin) != (MOIS_DEBUT_DEFAUT, MOIS_FIN_DEFAUT):
-        requete += " AND mois BETWEEN ? AND ?"
-        parametres.extend([int(filtres.mois_debut), int(filtres.mois_fin)])
+        requete = requete.where(
+            colonnes.mois.between(int(filtres.mois_debut), int(filtres.mois_fin))
+        )
     if filtres.perimetre == PERIMETRE_METROPOLE:
-        requete += " AND est_metropolitain = 1"
+        requete = requete.where(colonnes.est_metropolitain == 1)
     elif filtres.perimetre == PERIMETRE_OUTRE_MER:
-        requete += " AND est_metropolitain = 0"
-    return requete, parametres
+        requete = requete.where(colonnes.est_metropolitain == 0)
+    return requete
 
 
 def typer_categories(donnees: pd.DataFrame) -> pd.DataFrame:
@@ -143,9 +141,8 @@ def charger_operations(filtres: Filtres) -> pd.DataFrame:
     Le DataFrame retourné est partagé entre les graphiques : il ne doit pas
     être modifié en place (travailler sur une copie si nécessaire).
     """
-    requete, parametres = construire_requete(filtres)
-    with ouvrir_connexion() as connexion:
-        donnees = pd.read_sql_query(requete, connexion, params=parametres)
+    with creer_moteur().connect() as connexion:
+        donnees = pd.read_sql_query(construire_requete(filtres), connexion)
     return typer_categories(donnees)
 
 

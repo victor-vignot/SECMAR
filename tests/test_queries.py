@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from sqlalchemy import Select
 
 from config import VALEUR_TOUTES
 from src.utils.database import base_est_prete, creer_archive, restaurer_archive
@@ -20,28 +21,34 @@ from src.utils.queries import (
 BASE_PRETE = base_est_prete()
 
 
+def sql(requete: Select) -> str:
+    """Texte SQL de la requête, valeurs des paramètres écrites en clair."""
+    return str(requete.compile(compile_kwargs={"literal_binds": True}))
+
+
 def test_requete_sans_filtre() -> None:
-    """Sans filtre, seule la période est paramétrée."""
-    requete, parametres = construire_requete(Filtres(2005, 2025))
-    assert "annee BETWEEN ? AND ?" in requete
-    assert parametres == [2005, 2025]
+    """Sans filtre, seule la période est filtrée."""
+    texte = sql(construire_requete(Filtres(2005, 2025)))
+    assert "annee BETWEEN 2005 AND 2025" in texte
+    assert texte.count("AND") == 1
 
 
 def test_requete_avec_tous_les_filtres() -> None:
-    """Chaque filtre ajoute une condition paramétrée (pas d'injection SQL)."""
-    filtres = Filtres(2010, 2020, "Étel", "Médical", PERIMETRE_METROPOLE)
-    requete, parametres = construire_requete(filtres)
-    assert "cross = ?" in requete and "famille = ?" in requete
-    assert "est_metropolitain = 1" in requete
-    assert parametres == [2010, 2020, "Étel", "Médical"]
+    """Chaque filtre ajoute une condition, avec la valeur en paramètre lié."""
+    requete = construire_requete(Filtres(2010, 2020, "Étel", "Médical", PERIMETRE_METROPOLE))
+    texte = sql(requete)
+    # « cross » est un mot réservé SQL : SQLAlchemy le met entre guillemets.
+    assert "\"cross\" = 'Étel'" in texte and "famille = 'Médical'" in texte
+    assert "est_metropolitain = 1" in texte
+    assert set(requete.compile().params.values()) == {2010, 2020, "Étel", "Médical", 1}
 
 
 def test_requete_avec_mois() -> None:
     """Le filtre des mois n'ajoute une condition que s'il restreint l'année."""
-    requete, parametres = construire_requete(Filtres(2010, 2020, mois_debut=6, mois_fin=8))
-    assert "mois BETWEEN ? AND ?" in requete
-    assert parametres == [2010, 2020, 6, 8]
-    assert "mois" not in construire_requete(Filtres(2010, 2020))[0].split("WHERE")[1]
+    assert "mois BETWEEN 6 AND 8" in sql(
+        construire_requete(Filtres(2010, 2020, mois_debut=6, mois_fin=8))
+    )
+    assert "mois BETWEEN" not in sql(construire_requete(Filtres(2010, 2020)))
 
 
 def test_kpi_sur_petit_tableau() -> None:
