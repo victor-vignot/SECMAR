@@ -34,7 +34,7 @@ def test_application_complete() -> None:
     app = creer_application()
     callbacks = [c["callback"].__wrapped__ for c in app.callback_map.values()]
     assert len(callbacks) == 3
-    filtres = ([2015, 2020], "toutes", "toutes", "metropole")
+    filtres = ([2015, 2020], [6, 8], "toutes", "toutes", "metropole")
     assert callbacks[0](*filtres)[0] != "N/D"
     for mode in (MODE_FAMILLE, MODE_EVENEMENT):
         carte, note = callbacks[1](mode, *filtres)

@@ -55,3 +55,5 @@ max-line-length = 100
 [tool.pylint.design]
 # Les fonctions de figures prennent données, colonnes, textes et deux options d'affichage.
 max-args = 6
+# Les callbacks Dash reçoivent une valeur positionnelle par entrée (filtres + choix).
+max-positional-arguments = 6

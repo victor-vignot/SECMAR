@@ -21,16 +21,23 @@ from src.utils.queries import (
 # Entrées communes à tous les callbacks : les quatre filtres.
 ENTREES_FILTRES = [
     Input("filtre-periode", "value"),
+    Input("filtre-mois", "value"),
     Input("filtre-cross", "value"),
     Input("filtre-famille", "value"),
     Input("filtre-perimetre", "value"),
 ]
 
 
-def lire_filtres(periode: list[int], cross: str, famille: str, perimetre: str) -> Filtres:
+def lire_filtres(
+    periode: list[int], mois: list[int], cross: str, famille: str, perimetre: str
+) -> Filtres:
     """Convertit les valeurs des composants Dash en objet `Filtres`."""
     annee_debut, annee_fin = periode
-    return Filtres(int(annee_debut), int(annee_fin), cross, famille, perimetre)
+    mois_debut, mois_fin = sorted(mois)
+    return Filtres(
+        int(annee_debut), int(annee_fin), cross, famille, perimetre,
+        int(mois_debut), int(mois_fin),
+    )
 
 
 def creer_entete() -> html.Header:
@@ -187,9 +194,9 @@ def enregistrer_callbacks(app: Dash) -> None:
         *ENTREES_FILTRES,
     )
     def mettre_a_jour_indicateurs(
-        periode: list[int], cross: str, famille: str, perimetre: str
+        periode: list[int], mois: list[int], cross: str, famille: str, perimetre: str
     ) -> tuple[str, str, str, str, str]:
-        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        donnees = charger_operations(lire_filtres(periode, mois, cross, famille, perimetre))
         kpi = calculer_kpi(donnees)
         return (
             formater_nombre(kpi["operations"]),
@@ -206,9 +213,10 @@ def enregistrer_callbacks(app: Dash) -> None:
         *ENTREES_FILTRES,
     )
     def mettre_a_jour_carte(
-        mode: str, periode: list[int], cross: str, famille: str, perimetre: str
+        mode: str, periode: list[int], mois: list[int], cross: str, famille: str,
+        perimetre: str,
     ) -> tuple[go.Figure, str]:
-        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        donnees = charger_operations(lire_filtres(periode, mois, cross, famille, perimetre))
         return creer_carte(donnees, mode), decrire_positions(donnees)
 
     @app.callback(
@@ -217,9 +225,10 @@ def enregistrer_callbacks(app: Dash) -> None:
         *ENTREES_FILTRES,
     )
     def afficher_onglet(
-        identifiant: str, periode: list[int], cross: str, famille: str, perimetre: str
+        identifiant: str, periode: list[int], mois: list[int], cross: str, famille: str,
+        perimetre: str,
     ) -> list[html.P | html.Div]:
         # Seul l'onglet visible est calculé : la page reste fluide.
-        donnees = charger_operations(lire_filtres(periode, cross, famille, perimetre))
+        donnees = charger_operations(lire_filtres(periode, mois, cross, famille, perimetre))
         onglet = ONGLETS_PAR_IDENTIFIANT.get(identifiant, ONGLETS[0])
         return construire_onglet(onglet, donnees)

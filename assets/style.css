@@ -98,3 +98,6 @@ body { margin: 0; background: var(--quai); color: var(--texte); font: 400 15px/1
 .bascule .dash-options-list-option { margin: 0; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--gris); }
 .bascule .dash-options-list-option.selected { background: #FFFFFF; color: var(--port); box-shadow: 0 1px 3px rgba(22, 58, 92, 0.18); }
 .bascule .dash-options-list-option-wrapper { display: none; }
+
+/* Curseur des mois, sous celui des années */
+.libelle-mois { margin-top: 18px; }
