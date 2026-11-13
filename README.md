@@ -15,6 +15,8 @@ filtres choisis.
 
 ## User Guide
 
+Comment installer, lancer et utiliser le tableau de bord, sans connaissance du code.
+
 ### Prérequis
 
 - [uv](https://docs.astral.sh/uv/) installé (il installe lui-même Python 3.14 si besoin).
@@ -147,6 +149,8 @@ Corrections de libellés : CROSS « Adge » → « Agde », département « Réu
 ---
 
 ## Developer Guide
+
+Comment le code est organisé, quelles technologies il utilise et comment le faire évoluer (ajouter un graphique, un onglet, un message ou une colonne).
 
 ### Architecture
 
