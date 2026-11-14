@@ -968,6 +968,7 @@ dependencies = [
     { name = "dash" },
     { name = "pandas" },
     { name = "plotly" },
+    { name = "pydantic" },
     { name = "shapely" },
     { name = "sqlalchemy" },
 ]
@@ -987,6 +988,7 @@ requires-dist = [
     { name = "dash", specifier = ">=4.4.1" },
     { name = "pandas", specifier = ">=3.1.0" },
     { name = "plotly", specifier = ">=7.1.0" },
+    { name = "pydantic", specifier = ">=2.14.1" },
     { name = "shapely", specifier = ">=2.2.0" },
     { name = "sqlalchemy", specifier = ">=2.1.8" },
 ]
