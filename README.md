@@ -70,7 +70,7 @@ Pour forcer un nouveau téléchargement, supprimer d'abord les CSV de `data/raw/
 
 ### Vidéo de démonstration
 
-Lien : <https://drive.google.com/file/d/1Ig_Yd2vx_DZoaGfjmnLNXS_4wuBM9Zax/view?usp=share_link>
+Lien : <https://youtu.be/brjvKaakvZ4>
 
 ---
 
