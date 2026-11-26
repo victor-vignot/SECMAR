@@ -13,6 +13,14 @@ filtres choisis.
 
 ---
 
+## Version en ligne
+
+<https://secmar-224940021910.europe-west1.run.app>
+
+Aucune installation nécessaire. Le premier chargement peut prendre quelques secondes.
+
+---
+
 ## User Guide
 
 Comment installer, lancer et utiliser le tableau de bord, sans connaissance du code.
