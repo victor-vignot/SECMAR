@@ -33,8 +33,8 @@ Comment installer, lancer et utiliser le tableau de bord, sans connaissance du c
 ### Installation et lancement
 
 ```bash
-git clone https://git.esiee.fr/vignotv/dataproject.git
-cd dataproject
+git clone https://github.com/victor-vignot/secmar.git
+cd secmar
 uv sync
 uv run python main.py
 ```
