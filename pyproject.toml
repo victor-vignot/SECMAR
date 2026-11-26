@@ -5,6 +5,8 @@ requires-python = ">=3.14"
 dependencies = [
     "certifi>=2026.10.23",
     "dash>=4.4.1",
+    "flask-compress>=1.26",
+    "gunicorn>=27.0.1",
     "pandas>=3.1.0",
     "plotly>=7.1.0",
     "pydantic>=2.14.1",

@@ -6,6 +6,7 @@ relire la base. Les requêtes sont construites avec le langage d'expressions
 de SQLAlchemy : les valeurs des filtres sont toujours des paramètres liés.
 """
 
+import threading
 from functools import lru_cache
 
 import pandas as pd
@@ -153,13 +154,24 @@ def typer_categories(donnees: pd.DataFrame) -> pd.DataFrame:
     return donnees
 
 
-@lru_cache(maxsize=16)
+_VERROU_CHARGEMENT = threading.Lock()
+
+
 def charger_operations(filtres: Filtres) -> pd.DataFrame:
     """Charge les opérations correspondant aux filtres (résultat en cache).
 
-    Le DataFrame retourné est partagé entre les graphiques : il ne doit pas
-    être modifié en place (travailler sur une copie si nécessaire).
+    Le verrou garantit qu'une même requête n'est exécutée qu'une fois lorsque
+    plusieurs callbacks la demandent simultanément : les suivants attendent
+    puis lisent le cache. Le DataFrame retourné est partagé entre les
+    graphiques : il ne doit pas être modifié en place.
     """
+    with _VERROU_CHARGEMENT:
+        return _lire_operations(filtres)
+
+
+@lru_cache(maxsize=16)
+def _lire_operations(filtres: Filtres) -> pd.DataFrame:
+    """Exécute la requête filtrée et type les colonnes de classes."""
     with creer_moteur().connect() as connexion:
         donnees = pd.read_sql_query(construire_requete(filtres), connexion)
     return typer_categories(donnees)
