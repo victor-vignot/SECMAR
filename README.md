@@ -11,6 +11,8 @@ filtres choisis.
 
 ![Vue générale du tableau de bord](images/dashboard.png)
 
+**Version en ligne :** <https://secmar-224940021910.europe-west1.run.app> (aucune installation nécessaire ; le premier chargement peut prendre quelques secondes).
+
 ---
 
 ## User Guide
